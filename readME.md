@@ -2,7 +2,6 @@
 
 A payroll system developed on Django admin portal
 
-
 Command To Execute on Windows:
 python manage.py runserver
 
@@ -14,7 +13,6 @@ Run `venv/Scripts/activate` to activate the virtual environment
 
 Run `pip install -r requirements.txt` to install the dependencies
 
-
 ## Run
 
 ### Command to migrate database
@@ -24,11 +22,16 @@ Run `python manage.py migrate` to migrate to db
 
 ### Command to create a superuser
 
-Run `python manage.py createsuperuser` 
+Run `python manage.py createsuperuser`
+
+### Command to migrate database
+
+Remember to collectstatic files for prod
+Run `python manage.py collectstatic`
 
 ## Database
 
-You can use any database of your choice. 
+You can use any database of your choice.
 
 ## Access Admin
 
