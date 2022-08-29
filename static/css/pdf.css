@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #222;
+  line-height: 1.5;
+}
+
+table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table th,
+table td {
+  text-align: center;
+  font-size: 14px;
+  padding: 10px;
+  margin: 0;
+}
+
+tbody tr:nth-child(odd) {
+  background: #efefef;
+}
+
+thead th,
+tbody tr.total {
+  background: #989a97;
+  color: #fff;
+  font-weight: bold;
+  font-size: medium;
+}
+
+h1 {
+  margin: 0;
+}
+
+.secondary {
+  color: #bbb;
+  margin-bottom: 20px;
+}
+
+.num {
+  text-align: right;
+}
+
+.paid,
+.pending {
+  color: #555555;
+  border: 4px solid #555555;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 22px;
+  padding: 4px 12px 0px;
+  float: right;
+  transform: rotate(-15deg);
+  margin-right: 40px;
+}
+
+.pending {
+  color: #555555;
+  border: 4px solid #555555;
+}
+
+.footer {
+  margin-bottom: 0;
+}
+
+.footer > p {
+  font-size: 15px;
+  text-transform: uppercase;
+  color: #898481;
+  font-family: 'Jost', sans-serif;
+}

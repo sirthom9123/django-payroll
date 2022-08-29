@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap');
+
+      body {
+        font-family: 'Roboto', sans-serif;
+        color: #222;
+        line-height: 1.5;
+      }
+
+      table {
+        width: 100%;
+        border-spacing: 0;
+        border-collapse: collapse;
+        margin: 20px 0;
+        text-align: left;
+      }
+
+      table th,
+      table td {
+        text-align: left;
+        padding: 10px;
+        margin: 0;
+      }
+
+      tbody tr:nth-child(odd) {
+        background: #efefef;
+      }
+
+      thead th,
+      tbody tr.total {
+        text-align: left;
+        background: #989a97;
+        color: #fff;
+        font-weight: bold;
+      }
+
+      h1 {
+        margin: 0;
+      }
+
+      p {
+        font-size: 12px;
+      }
+
+      .secondary {
+        color: #bbb;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .num {
+        text-align: left;
+      }
+
+      .paid,
+      .pending {
+        color: #555555;
+        border: 4px solid #555555;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 4px 12px 0px;
+        float: right;
+        transform: rotate(-15deg);
+        margin-right: 40px;
+      }
+
+      .pending {
+        color: #555555;
+        border: 4px solid #555555;
+      }
+
+      .total {
+        font-size: 12px;
+      }
+      .footer {
+        margin-bottom: 0;
+      }
+
+      .footer > p {
+        font-size: 15px;
+        text-transform: uppercase;
+        color: #898481;
+        font-family: 'Jost', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <span class="pending"><h1>Mabatau Agricultural Solutions</h1> </span>
+    <p>
+      <span class="secondary"
+        >Payslip Generated on: {{payroll.created_date|date:"M d, Y"}}
+      </span>
+    </p>
+
+    <span class="pending"> <h1>Employee Details</h1> </span>
+    <p><b>Full Names:</b> {{payroll.employee.first_name}} 
+      {% if payroll.employee.middle_name %} 
+      {{ payroll.employee.middle_name}} 
+      {% endif %} 
+      {{payroll.employee.last_name}} 
+    </p>
+
+    <p><b>Contact details: </b> {{payroll.employee.phone}}</p>
+    <p><b>Employee Code:</b> {{payroll.employee.emp_code}} <br /></p>
+    {% if payroll.employee.id_number %}
+    <p><b>ID Number:</b> {{payroll.employee.id_number}} <br /></p>
+    {% elif payroll.employee.passport %}
+    <p><b>Pension number:</b> {{payroll.employee.pension_number}}</p>
+    {% endif %} {% if payroll.employee.pension_number %}
+    <p><b>Pension number:</b> {{payroll.employee.pension_number}}</p>
+    {% endif %}
+
+    <p><b>Date Hired:</b> {{payroll.employee.date_hired}} <br /></p>
+    <table class="table">
+      <h1>Income</h1>
+      <thead>
+        <tr>
+          <th>Basic Salary</th>
+          <th class="num">Rate</th>
+          <th class="num">Hours</th>
+          <th class="num">Benefits Total</th>
+          <th class="num">Gross Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R{{payroll.basic_salary}}</td>
+          <td class="num"><span>R{{ payroll.rate|floatformat:2 }}</span></td>
+          <td class="num">{{ payroll.hours|floatformat:2 }}</td>
+          <td class="num">{{ payroll.get_selected_benefits|floatformat:2 }}</td>
+          <td class="num">R{{ payroll.get_gross_salary|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    {% if payroll.benefits.all %}
+    <table class="table">
+      <h1>Benefits</h1>
+      <thead>
+        <tr>
+          {% for item in payroll.deductions.all %}
+          <th class="num">{{item.name}}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for item in payroll.benefits.all %}
+          <td class="num">
+            <span>R{{ item.amount|floatformat:2 }}</span>
+          </td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    <table class="table">
+      <h1>Deductions</h1>
+      <thead>
+        <tr>
+          <th class="num">Income Tax</th>
+          <th class="num">UIF Contributions</th>
+          {% if payroll.deductions.all %} 
+          {% for item in payroll.deductions.all %}
+          <th class="num">{{item.name}}</th>
+          {% endfor %} {% endif %}
+          <th class="num">Deductions Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R{{payroll.income_tax}}</td>
+          <td class="num"><span>R{{ payroll.uif_contribution }}</span></td>
+          {% if payroll.deductions.all %} 
+          {% for item in payroll.deductions.all %}
+          <td class="num">
+            <span>R{{ item.amount|floatformat:2 }}</span>
+          </td>
+          {% endfor %} {% endif %}
+          <td class="num">{{ payroll.get_total_deductions|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+
+      <tr></tr>
+      <tr></tr>
+      <tr></tr>
+      <tr class="total">
+        <td colspan="3" class="total"><h3>Nett Pay</h3></td>
+        <td class="num">R{{ payroll.get_nett_salary|floatformat:2 }}</td>
+      </tr>
+    </table>
+
+    <div class="footer"></div>
+  </body>
+</html>
