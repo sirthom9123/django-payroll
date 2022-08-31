@@ -31,7 +31,7 @@ Run `python manage.py collectstatic`
 
 ## Database
 
-You can use any database of your choice.
+You can use any database of your choice. Just make sure to update the db settings in your '.env' file
 
 ## Access Admin
 
