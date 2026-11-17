@@ -3,7 +3,9 @@ import shutil
 import tempfile
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -114,6 +116,15 @@ class HrAccessTests(HrFixture):
         response = self.client.get(reverse("hr:employee_list"))
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "You do not have access to HR.", status_code=403)
+
+    def test_hr_stylesheet_lives_in_project_static(self):
+        found = finders.find("hr/hr.css")
+        expected = os.path.join(settings.STATIC_ROOT, "hr", "hr.css")
+        self.assertTrue(os.path.isfile(expected))
+        self.assertTrue(os.path.samefile(found, expected))
+        self.client.force_login(self.hr)
+        page = self.client.get(reverse("hr:home"))
+        self.assertContains(page, "/static/hr/hr.css")
 
     def test_empty_employee_list(self):
         self.client.force_login(self.hr)
