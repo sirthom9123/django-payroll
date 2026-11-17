@@ -17,6 +17,9 @@
         <a href="{% url 'hr:home' %}">Home</a>
         <a href="{% url 'hr:employee_list' %}">Employees</a>
         {% endif %}
+        {% if hr_can_run_payroll %}
+        <a href="{% url 'hr:payroll_list' %}">Payroll</a>
+        {% endif %}
         <a href="{% url 'admin:index' %}">Admin</a>
         {% if user.is_authenticated %}
         <form method="post" action="{% url 'logout' %}">

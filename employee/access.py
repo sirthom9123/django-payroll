@@ -34,6 +34,14 @@ def can_edit_hr(user):
     return HR_GROUP in group_names(user)
 
 
+def can_run_payroll(user):
+    if not user.is_authenticated or not user.is_staff:
+        return False
+    if user.is_superuser:
+        return True
+    return PAYROLL_GROUP in group_names(user)
+
+
 def visible_companies(user):
     if not user.is_authenticated:
         return Company.objects.none()

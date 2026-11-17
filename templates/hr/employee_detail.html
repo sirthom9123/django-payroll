@@ -23,6 +23,7 @@
     <dt>Home address</dt><dd>{{ employee.address|default:"—" }}</dd>
     <dt>City</dt><dd>{{ employee.city|default:"—" }}</dd>
     <dt>Postal code</dt><dd>{{ employee.postal_code|default:"—" }}</dd>
+    <dt>Date of birth</dt><dd>{% if employee.date_of_birth %}{{ employee.date_of_birth|date:"j F Y" }}{% else %}—{% endif %}</dd>
     <dt>Country</dt><dd>{{ employee.country|default:"—" }}</dd>
   </dl>
 </section>
@@ -36,6 +37,23 @@
     <dt>Employment type</dt><dd>{{ employee.get_employee_type_display }}</dd>
     <dt>Date hired</dt><dd>{% if employee.date_hired %}{{ employee.date_hired|date:"j F Y" }}{% else %}—{% endif %}</dd>
     <dt>Date departed</dt><dd>{% if employee.date_departed %}{{ employee.date_departed|date:"j F Y" }}{% else %}—{% endif %}</dd>
+    <dt>Gross salary</dt>
+    <dd>
+      {% if employee.pay_basis == "package" and employee.gross_salary %}<p>R{{ employee.gross_salary|floatformat:2 }} a month</p>{% endif %}
+      {% if employee.pay_basis == "hourly" and employee.hourly_rate %}<p>Hourly rate R{{ employee.hourly_rate|floatformat:2 }}</p>{% endif %}
+      <form method="post" action="{% url 'hr:employee_detail' employee.pk %}">
+        {% csrf_token %}
+        <label for="{{ gross_form.gross_salary.id_for_label }}">Monthly gross salary (ZAR)</label>
+        {{ gross_form.gross_salary }}
+        <p class="help">{{ gross_form.gross_salary.help_text }}</p>
+        {% for error in gross_form.gross_salary.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        <label for="{{ gross_form.hourly_rate.id_for_label }}">Hourly rate (ZAR)</label>
+        {{ gross_form.hourly_rate }}
+        <p class="help">{{ gross_form.hourly_rate.help_text }}</p>
+        {% for error in gross_form.hourly_rate.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        <button type="submit">Save pay</button>
+      </form>
+    </dd>
     <dt>Pension number</dt><dd>{{ employee.pension_number|default:"—" }}</dd>
   </dl>
 </section>

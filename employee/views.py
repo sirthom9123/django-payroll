@@ -1,12 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from django.template.loader import render_to_string, get_template
+from django.template.loader import get_template
 from django.http import HttpResponse
 from django.conf import settings
-from employee.models import Payroll
 from xhtml2pdf import pisa
 import os
-from django.conf import settings
 from django.contrib.staticfiles import finders
 
 def link_callback(uri, rel):
@@ -15,17 +13,15 @@ def link_callback(uri, rel):
     resources
     """
     result = finders.find(uri)
+    if isinstance(result, (list, tuple)):
+        result = next((item for item in result if item), None)
+    sUrl = settings.STATIC_URL
+    sRoot = settings.STATIC_ROOT
+    mUrl = settings.MEDIA_URL
+    mRoot = settings.MEDIA_ROOT
     if result:
-            if not isinstance(result, (list, tuple)):
-                    result = [result]
-            result = list(os.path.realpath(path) for path in result)
-            path=result[0]
+            path = os.path.realpath(result)
     else:
-            sUrl = settings.STATIC_URL        # Typically /static/
-            sRoot = settings.STATIC_ROOT      # Typically /home/userX/project_static/
-            mUrl = settings.MEDIA_URL         # Typically /media/
-            mRoot = settings.MEDIA_ROOT       # Typically /home/userX/project_static/media/
-
             if uri.startswith(mUrl):
                     path = os.path.join(mRoot, uri.replace(mUrl, ""))
             elif uri.startswith(sUrl):
@@ -40,19 +36,23 @@ def link_callback(uri, rel):
             )
     return path
 
+def render_payroll_pdf(payroll):
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'filename=payroll_{payroll.employee.emp_code}.pdf'
+    template = get_template("payroll.html")
+    html = template.render({"payroll": payroll})
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    if pisa_status.err:
+        return HttpResponse("We had some errors <pre>" + html + "</pre>")
+    return response
+
+
 @staff_member_required
 def admin_export_payroll_pdf(request, id):
-    payroll = get_object_or_404(Payroll, id=id)
+    from employee.access import can_use_hr
+    from employee.payroll_views import payroll_queryset
 
-    context = {'payroll': payroll,}
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=payroll_{payroll.employee.emp_code}.pdf'
-    template = get_template('payroll.html')
-    html = template.render(context) 
-    
-    # create pdf
-    pisa_status = pisa.CreatePDF(
-       html, dest=response, link_callback=link_callback)
-    if pisa_status.err:
-       return HttpResponse('We had some errors <pre>' + html + '</pre>')
-    return response
+    if not can_use_hr(request.user):
+        return render(request, "hr/no_access.html", status=403)
+    payroll = get_object_or_404(payroll_queryset(request.user), id=id)
+    return render_payroll_pdf(payroll)

@@ -1,0 +1,108 @@
+{% extends "hr/base.html" %}
+{% block title %}Payroll run{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:payroll_list' %}">Payroll runs</a></p>
+<div class="row">
+  <h1>{{ payroll.employee.get_full_name }}</h1>
+  {% if payroll.is_paid %}
+  <a class="button" href="{% url 'hr:payroll_payslip' payroll.pk %}">Download payslip</a>
+  {% else %}
+  <a class="button" href="{% url 'hr:payroll_payment' payroll.pk %}">Record payment</a>
+  {% endif %}
+</div>
+<p class="meta">
+  {% if payroll.start_date %}{{ payroll.start_date|date:"j F Y" }}{% else %}—{% endif %}
+  {% if payroll.end_date %} – {{ payroll.end_date|date:"j F Y" }}{% endif %}
+  · {% if payroll.is_paid %}Paid{% else %}Unpaid{% endif %}
+</p>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Pay</h2>
+    {% if not payroll.is_paid %}
+    <a class="button secondary" href="{% url 'hr:payroll_edit' payroll.pk %}">Edit payroll run</a>
+    {% endif %}
+  </div>
+  <dl>
+    <dt>Employee</dt><dd>{{ payroll.employee.get_full_name }} ({{ payroll.employee.emp_code }})</dd>
+    {% if payroll.rate %}
+    <dt>Rate</dt><dd>R{{ payroll.rate|floatformat:2 }}</dd>
+    <dt>Ordinary hours</dt><dd>{{ payroll.hours|floatformat:2 }}</dd>
+    {% else %}
+    <dt>Monthly gross</dt><dd>R{{ payroll.basic_salary|floatformat:2 }}</dd>
+    {% endif %}
+    <dt>Basic salary</dt><dd>R{{ payroll.basic_salary|floatformat:2 }}</dd>
+    <dt>Overtime hours</dt><dd>{{ payroll.overtime_hours|floatformat:2 }}</dd>
+    <dt>Overtime rate</dt><dd>R{{ payroll.overtime_rate|floatformat:2 }}</dd>
+    <dt>Overtime pay</dt><dd>R{{ payroll.overtime_amount|floatformat:2 }}</dd>
+    <dt>Gross</dt><dd>R{{ payroll.get_gross_salary|floatformat:2 }}</dd>
+    <dt>Income tax (PAYE)</dt>
+    <dd>
+      R{{ payroll.income_tax|floatformat:2 }}
+      {% if paye %}
+      <p class="help">{{ paye.year_name }}. Monthly remuneration R{{ paye.remuneration|floatformat:2 }}, annual equivalent R{{ paye.annual|floatformat:2 }}, rebate R{{ paye.rebate|floatformat:2 }}. {{ paye.note }}</p>
+      {% endif %}
+    </dd>
+    <dt>UIF</dt><dd>R{{ payroll.uif_contribution|floatformat:2 }}</dd>
+    <dt>Deductions</dt><dd>R{{ payroll.get_total_deductions|floatformat:2 }}</dd>
+    <dt>Nett</dt><dd>R{{ payroll.get_nett_salary|floatformat:2 }}</dd>
+  </dl>
+</section>
+
+<section class="panel">
+  <h2>Allowances</h2>
+  {% if payroll.allowance_lines.all or payroll.benefits.all %}
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for line in payroll.allowance_lines.all %}
+      <tr><td>{{ line.name }}</td><td>R{{ line.amount|floatformat:2 }}</td></tr>
+      {% endfor %}
+      {% for item in payroll.benefits.all %}
+      <tr><td>{{ item.name }} (catalogue)</td><td>R{{ item.amount|floatformat:2 }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No allowances on this run.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Other deductions</h2>
+  {% if payroll.deduction_lines.all or payroll.deductions.all %}
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for line in payroll.deduction_lines.all %}
+      <tr><td>{{ line.name }}</td><td>R{{ line.amount|floatformat:2 }}</td></tr>
+      {% endfor %}
+      {% for item in payroll.deductions.all %}
+      <tr><td>{{ item.name }} (catalogue)</td><td>R{{ item.amount|floatformat:2 }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No other deductions on this run. PAYE and UIF are shown above.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Payment</h2>
+  {% if payment %}
+  <dl>
+    <dt>Method</dt><dd>{{ payment.get_method_display }}</dd>
+    <dt>Payment date</dt><dd>{{ payment.payment_date|date:"j F Y" }}</dd>
+    <dt>Reference</dt><dd>{{ payment.reference }}</dd>
+    <dt>Amount</dt><dd>R{{ payment.amount|floatformat:2 }}</dd>
+  </dl>
+  {% else %}
+  <p class="empty">No payment recorded.</p>
+  <p><a href="{% url 'hr:payroll_payslip' payroll.pk %}">Download payslip</a></p>
+  {% endif %}
+</section>
+{% endblock %}

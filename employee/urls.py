@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from . import hr_views, views
+from . import hr_views, payroll_views, views
 
 hr_urlpatterns = [
     path("", hr_views.home, name="home"),
@@ -17,6 +17,16 @@ hr_urlpatterns = [
     path("employees/<int:pk>/history/<int:history_pk>/edit/", hr_views.history_edit, name="history_edit"),
     path("employees/<int:pk>/documents/new/", hr_views.document_create, name="document_create"),
     path("documents/<int:pk>/download/", hr_views.document_download, name="document_download"),
+    path("payroll/", payroll_views.payroll_list, name="payroll_list"),
+    path("payroll/new/", payroll_views.payroll_create, name="payroll_create"),
+    path("payroll/report/", payroll_views.payroll_report, name="payroll_report"),
+    path("payroll/tax-years/", payroll_views.tax_year_list, name="tax_year_list"),
+    path("payroll/tax-years/new/", payroll_views.tax_year_create, name="tax_year_create"),
+    path("payroll/tax-years/<int:pk>/edit/", payroll_views.tax_year_edit, name="tax_year_edit"),
+    path("payroll/<int:pk>/", payroll_views.payroll_detail, name="payroll_detail"),
+    path("payroll/<int:pk>/edit/", payroll_views.payroll_edit, name="payroll_edit"),
+    path("payroll/<int:pk>/payment/", payroll_views.payroll_payment, name="payroll_payment"),
+    path("payroll/<int:pk>/payslip/", payroll_views.payroll_payslip, name="payroll_payslip"),
 ]
 
 urlpatterns = [

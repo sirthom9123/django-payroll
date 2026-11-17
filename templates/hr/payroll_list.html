@@ -1,0 +1,45 @@
+{% extends "hr/base.html" %}
+{% block title %}Payroll{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Payroll runs</h1>
+  <a class="button" href="{% url 'hr:payroll_create' %}">New payroll run</a>
+</div>
+<p>
+  <a href="{% url 'hr:payroll_report' %}">Payroll report</a>
+  · <a href="{% url 'hr:tax_year_list' %}">PAYE tables</a>
+</p>
+{% if runs %}
+<table>
+  <thead>
+    <tr>
+      <th>Period</th>
+      <th>Employee</th>
+      <th>Gross</th>
+      <th>Deductions</th>
+      <th>Nett</th>
+      <th>Payment</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for run in runs %}
+    <tr>
+      <td>
+        <a href="{% url 'hr:payroll_detail' run.pk %}">
+          {% if run.start_date %}{{ run.start_date|date:"j M Y" }}{% else %}—{% endif %}
+          {% if run.end_date %} – {{ run.end_date|date:"j M Y" }}{% endif %}
+        </a>
+      </td>
+      <td>{{ run.employee.get_full_name }}</td>
+      <td>R{{ run.get_gross_salary|floatformat:2 }}</td>
+      <td>R{{ run.get_total_deductions|floatformat:2 }}</td>
+      <td>R{{ run.get_nett_salary|floatformat:2 }}</td>
+      <td>{% if run.is_paid %}Paid{% else %}Unpaid{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No payroll runs yet.</p>
+{% endif %}
+{% endblock %}

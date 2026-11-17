@@ -1,0 +1,36 @@
+{% extends "hr/base.html" %}
+{% block title %}PAYE tables{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:payroll_list' %}">Payroll runs</a></p>
+<div class="row">
+  <h1>PAYE tables</h1>
+  <a class="button" href="{% url 'hr:tax_year_create' %}">New tax year</a>
+</div>
+<p class="lede">Each tax year has its own bands and rebates. Saving a year recalculates unpaid payroll runs in that year. Paid runs stay as they were filed.</p>
+{% if years %}
+<table>
+  <thead>
+    <tr>
+      <th>Tax year</th>
+      <th>From</th>
+      <th>To</th>
+      <th>Primary rebate</th>
+      <th>Bands</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for year in years %}
+    <tr>
+      <td><a href="{% url 'hr:tax_year_edit' year.pk %}">{{ year.name }}</a></td>
+      <td>{{ year.start_date|date:"j M Y" }}</td>
+      <td>{{ year.end_date|date:"j M Y" }}</td>
+      <td>R{{ year.primary_rebate|floatformat:2 }}</td>
+      <td>{{ year.bands.all|length }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No PAYE table yet. Add the tax year before you run payroll for those dates.</p>
+{% endif %}
+{% endblock %}
