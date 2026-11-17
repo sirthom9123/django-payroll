@@ -8,12 +8,13 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from employee.access import can_edit_hr, can_use_hr, visible_employees
+from employee.access import can_edit_hr, can_run_payroll, can_use_hr, visible_employees
 from employee.forms import (
     ContractForm,
     EmployeeDocumentForm,
     EmployeeForm,
     EmploymentHistoryForm,
+    GrossSalaryForm,
     QualificationForm,
 )
 from employee.models import (
@@ -152,8 +153,17 @@ def employee_create(request):
 @hr_login_required
 def employee_detail(request, pk):
     employee = get_employee(request.user, pk)
+    gross_form = GrossSalaryForm(request.POST or None, instance=employee)
+    if request.method == "POST":
+        if not (can_edit_hr(request.user) or can_run_payroll(request.user)):
+            return render(request, "hr/read_only.html", status=403)
+        if gross_form.is_valid():
+            gross_form.save()
+            messages.success(request, "Gross salary saved.")
+            return redirect("hr:employee_detail", pk=employee.pk)
     return render(request, "hr/employee_detail.html", {
         "employee": employee,
+        "gross_form": gross_form,
         "current_contract": employee.contracts.filter(is_current=True).first(),
         "contracts": employee.contracts.all(),
         "qualifications": employee.qualifications.all(),

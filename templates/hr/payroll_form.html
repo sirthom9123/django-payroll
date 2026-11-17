@@ -1,0 +1,70 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:payroll_list' %}">Payroll runs</a></p>
+<h1>{{ heading }}</h1>
+<p class="lede">Choose the employee. A salaried employee’s monthly gross is filled in and locked. A contract consultant’s hourly rate is filled in and locked, and you enter the hours for this run. Change those figures on the employee file. Amounts are in ZAR.</p>
+{{ pay_people|json_script:"pay-people" }}
+<form method="post">
+  {% include "hr/_fields.html" %}
+  <h2>Allowances</h2>
+  <p class="help">Add one row for each allowance on this run. Leave a blank row empty.</p>
+  {% include "hr/_lines.html" with formset=allowances add_label="Add another allowance" %}
+  <h2>Deductions</h2>
+  <p class="help">Add one row for each deduction on this run. PAYE and UIF are calculated separately. Leave a blank row empty.</p>
+  {% include "hr/_lines.html" with formset=deductions add_label="Add another deduction" %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+<script>
+(function () {
+  var people = JSON.parse(document.getElementById("pay-people").textContent);
+  var byId = {};
+  people.forEach(function (person) { byId[String(person.id)] = person; });
+  var employee = document.getElementById("id_employee");
+  var gross = document.getElementById("id_gross_salary");
+  var rate = document.getElementById("id_rate");
+  var hours = document.getElementById("id_hours");
+  function applyPay() {
+    var person = employee ? byId[employee.value] : null;
+    if (gross) {
+      gross.disabled = true;
+      gross.value = person && person.basis !== "hourly" ? person.gross : "";
+    }
+    if (rate) {
+      rate.disabled = true;
+      rate.value = person && person.basis === "hourly" ? person.rate : "";
+    }
+    if (hours) {
+      var hourly = person && person.basis === "hourly";
+      hours.disabled = !hourly;
+      if (!hourly) {
+        hours.value = "0";
+      }
+    }
+  }
+  if (employee) {
+    employee.addEventListener("change", applyPay);
+    applyPay();
+  }
+})();
+document.querySelectorAll("[data-add-line]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var prefix = button.getAttribute("data-add-line");
+    var total = document.getElementById("id_" + prefix + "-TOTAL_FORMS");
+    var proto = document.getElementById(prefix + "-empty");
+    var html = proto.innerHTML.replace(/__prefix__/g, total.value);
+    var holder = document.createElement("div");
+    holder.innerHTML = html.trim();
+    var row = holder.firstElementChild;
+    proto.parentNode.insertBefore(row, proto);
+    var labels = row.querySelectorAll(".field label");
+    row.querySelectorAll(".field input, .field select, .field textarea").forEach(function (input, index) {
+      if (labels[index] && input.id) {
+        labels[index].setAttribute("for", input.id);
+      }
+    });
+    total.value = String(parseInt(total.value, 10) + 1);
+  });
+});
+</script>
+{% endblock %}

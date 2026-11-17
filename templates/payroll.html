@@ -130,13 +130,51 @@
       <tbody>
         <tr>
           <td>R{{payroll.basic_salary}}</td>
-          <td class="num"><span>R{{ payroll.rate|floatformat:2 }}</span></td>
-          <td class="num">{{ payroll.hours|floatformat:2 }}</td>
+          <td class="num"><span>{% if payroll.rate %}R{{ payroll.rate|floatformat:2 }}{% else %}—{% endif %}</span></td>
+          <td class="num">{% if payroll.rate %}{{ payroll.hours|floatformat:2 }}{% else %}—{% endif %}</td>
           <td class="num">{{ payroll.get_selected_benefits|floatformat:2 }}</td>
           <td class="num">R{{ payroll.get_gross_salary|floatformat:2 }}</td>
         </tr>
       </tbody>
     </table>
+
+    {% if payroll.overtime_hours %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Overtime hours</th>
+          <th class="num">Overtime rate</th>
+          <th class="num">Overtime pay</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ payroll.overtime_hours|floatformat:2 }}</td>
+          <td class="num">R{{ payroll.overtime_rate|floatformat:2 }}</td>
+          <td class="num">R{{ payroll.overtime_amount|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if payroll.allowance_lines.all %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Allowance</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in payroll.allowance_lines.all %}
+        <tr>
+          <td>{{ line.name }}</td>
+          <td class="num">R{{ line.amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
 
     {% if payroll.benefits.all %}
     <table class="table">
@@ -156,6 +194,25 @@
           </td>
           {% endfor %}
         </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if payroll.deduction_lines.all %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Deduction</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in payroll.deduction_lines.all %}
+        <tr>
+          <td>{{ line.name }}</td>
+          <td class="num">R{{ line.amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
     {% endif %}

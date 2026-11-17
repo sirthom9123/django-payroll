@@ -31,7 +31,8 @@ class StaticRootFinder(BaseFinder):
                 matches.append(absolute)
         if all:
             return matches
-        return matches[0] if matches else None
+        # An empty list, not None. Django's finder loop treats None as a hit.
+        return matches[0] if matches else []
 
     def list(self, ignore_patterns):
         return []

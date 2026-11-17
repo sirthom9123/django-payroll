@@ -1,0 +1,11 @@
+{% extends "hr/base.html" %}
+{% block title %}Record payment{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:payroll_detail' payroll.pk %}">{{ payroll.employee.get_full_name }}</a></p>
+<h1>Record payment</h1>
+<p class="lede">Nett salary for this run is R{{ payroll.get_nett_salary|floatformat:2 }}. The amount must match it. One payment is filed for each run.</p>
+<form method="post">
+  {% include "hr/_fields.html" %}
+  <button type="submit">Save payment</button>
+</form>
+{% endblock %}

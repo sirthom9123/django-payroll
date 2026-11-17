@@ -1,0 +1,58 @@
+{% extends "hr/base.html" %}
+{% block title %}Payroll report{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:payroll_list' %}">Payroll runs</a></p>
+<h1>Payroll report</h1>
+<p class="lede">One company and one period. A run is included when its period starts inside these dates. Figures are the stored basic salary, overtime, allowances, PAYE, and UIF. This page does not recalculate tax.</p>
+<form class="filters panel" method="get" action="{% url 'hr:payroll_report' %}">
+  {% for field in form %}
+  <div>
+    <label for="{{ field.id_for_label }}" class="required">{{ field.label }}</label>
+    {{ field }}
+    {% for error in field.errors %}
+    <p class="error">{{ error }}</p>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <button type="submit">Show report</button>
+</form>
+{% if report %}
+<section class="panel">
+  <h2>{{ report.company }} · {{ report.start|date:"j F Y" }} – {{ report.end|date:"j F Y" }}</h2>
+  {% if not report.runs %}
+  <p class="empty">No payroll runs for this period.</p>
+  {% endif %}
+  <dl>
+    <dt>Headcount</dt><dd>{{ report.headcount }}</dd>
+    <dt>Total gross</dt><dd>R{{ report.gross|floatformat:2 }}</dd>
+    <dt>Total PAYE</dt><dd>R{{ report.paye|floatformat:2 }}</dd>
+    <dt>Total UIF</dt><dd>R{{ report.uif|floatformat:2 }}</dd>
+    <dt>Total nett</dt><dd>R{{ report.nett|floatformat:2 }}</dd>
+  </dl>
+  {% if report.runs %}
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Gross</th>
+        <th>PAYE</th>
+        <th>UIF</th>
+        <th>Nett</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in report.runs %}
+      <tr>
+        <td><a href="{% url 'hr:payroll_detail' run.pk %}">{{ run.employee.get_full_name }}</a></td>
+        <td>R{{ run.get_gross_salary|floatformat:2 }}</td>
+        <td>R{{ run.income_tax|floatformat:2 }}</td>
+        <td>R{{ run.uif_contribution|floatformat:2 }}</td>
+        <td>R{{ run.get_nett_salary|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+<div class="lines" data-prefix="{{ formset.prefix }}">
+{{ formset.management_form }}
+{% if formset.non_form_errors %}
+  {% for error in formset.non_form_errors %}
+  <p class="error">{{ error }}</p>
+  {% endfor %}
+{% endif %}
+{% for line in formset %}
+<div class="panel line">
+  {% for hidden in line.hidden_fields %}{{ hidden }}{% endfor %}
+  {% for field in line.visible_fields %}
+    {% if field.name != "DELETE" %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}" class="{% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endfor %}
+  {% if line.instance.pk %}
+  <div class="field">
+    <label for="{{ line.DELETE.id_for_label }}">Remove this line</label>
+    {{ line.DELETE }}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% if add_label %}
+<template id="{{ formset.prefix }}-empty">
+  <div class="panel line">
+    {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% for field in formset.empty_form.visible_fields %}
+      {% if field.name != "DELETE" %}
+      <div class="field">
+        <label class="{% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+        {{ field }}
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</template>
+<button type="button" class="secondary" data-add-line="{{ formset.prefix }}">{{ add_label }}</button>
+{% endif %}
+</div>

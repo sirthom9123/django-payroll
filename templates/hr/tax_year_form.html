@@ -1,0 +1,13 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:tax_year_list' %}">PAYE tables</a></p>
+<h1>{{ heading }}</h1>
+<p class="lede">Copy each SARS line into From, To, Rate, Base tax, and Above. Leave To blank on the top band only. The next band starts at the previous upper amount plus 1. Age rebates use the employee's date of birth on the last day of this tax year.</p>
+<form method="post">
+  {% include "hr/_fields.html" %}
+  <h2>Bands</h2>
+  {% include "hr/_lines.html" with formset=bands %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+{% endblock %}
