@@ -1,0 +1,10 @@
+{% extends "hr/base.html" %}
+{% block title %}Add document{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:employee_detail' employee.pk %}">{{ employee.get_full_name }}</a></p>
+<h1>Add document</h1>
+<form method="post" enctype="multipart/form-data">
+  {% include "hr/_fields.html" %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+{% endblock %}

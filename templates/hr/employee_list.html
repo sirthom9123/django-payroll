@@ -1,0 +1,76 @@
+{% extends "hr/base.html" %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Employees</h1>
+  {% if hr_can_edit %}
+  <a class="button" href="{% url 'hr:employee_create' %}">Add employee</a>
+  {% endif %}
+</div>
+{% if total %}
+<form class="filters panel" method="get" action="{% url 'hr:employee_list' %}">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="{{ query }}" placeholder="Name or employee code">
+  </div>
+  <div>
+    <label for="department">Department</label>
+    <select id="department" name="department">
+      <option value="">All departments</option>
+      {% for item in departments %}
+      <option value="{{ item.pk }}" {% if department == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All statuses</option>
+      {% for value, label in statuses %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="employee_type">Employment type</label>
+    <select id="employee_type" name="employee_type">
+      <option value="">All types</option>
+      {% for value, label in employee_types %}
+      <option value="{{ value }}" {% if employee_type == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">Apply</button>
+</form>
+{% endif %}
+{% if employees %}
+<table>
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Designation</th>
+      <th>Department</th>
+      <th>Status</th>
+      <th>Date hired</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for employee in employees %}
+    <tr>
+      <td><a href="{% url 'hr:employee_detail' employee.pk %}">{{ employee.emp_code }}</a></td>
+      <td>{{ employee.get_full_name }}</td>
+      <td>{{ employee.designation.name }}</td>
+      <td>{{ employee.designation.department.name }}</td>
+      <td>{{ employee.get_status_display }}</td>
+      <td>{% if employee.date_hired %}{{ employee.date_hired|date:"j F Y" }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% elif filtered %}
+<p class="empty">No employees match this search.</p>
+{% else %}
+<p class="empty">No employees yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<p>{% if employee %}<a href="{% url 'hr:employee_detail' employee.pk %}">{{ employee.get_full_name }}</a>{% else %}<a href="{% url 'hr:employee_list' %}">Employees</a>{% endif %}</p>
+<h1>{{ heading }}</h1>
+<form method="post">
+  {% include "hr/_fields.html" %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+{% endblock %}

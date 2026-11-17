@@ -1,6 +1,17 @@
 from pathlib import Path
 import os
+import sys
 from decouple import Csv, config
+
+try:
+    import MySQLdb  # noqa: F401
+except ImportError:
+    try:
+        import pymysql
+    except ImportError:
+        pymysql = None
+    if pymysql is not None:
+        pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -69,6 +80,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "employee.context_processors.hr_access",
             ],
         },
     },
@@ -152,3 +164,15 @@ MESSAGE_TAGS = {
 }
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "hr:after_login"
+LOGOUT_REDIRECT_URL = "login"
+
+if "test" in sys.argv:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }

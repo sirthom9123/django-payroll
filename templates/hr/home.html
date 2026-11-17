@@ -1,0 +1,21 @@
+{% extends "hr/base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>HR home</h1>
+<p class="lede">Counts for {{ month_label }}. This page does not show identity numbers or bank details.</p>
+<div class="counts">
+  <section class="card">
+    <h2>Active employees</h2>
+    <p class="count">{{ active_employees }}</p>
+  </section>
+  <section class="card">
+    <h2>Payroll runs this month</h2>
+    <p class="count">{{ payroll_runs }}</p>
+  </section>
+  <section class="card">
+    <h2>Open leave</h2>
+    <p>Leave is not captured yet.</p>
+  </section>
+</div>
+<p><a class="button" href="{% url 'hr:employee_list' %}">View employees</a></p>
+{% endblock %}

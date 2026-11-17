@@ -1,11 +1,29 @@
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 import textwrap
+import uuid
 from .utils import create_ref_code
+
+class HrDocumentStorage(FileSystemStorage):
+    def __init__(self, location=None, base_url=None, **kwargs):
+        if location is None:
+            location = settings.BASE_DIR / "hr_documents"
+        if base_url is None:
+            base_url = "/hr-documents-not-served/"
+        super().__init__(location=location, base_url=base_url, **kwargs)
+
+    def deconstruct(self):
+        return ("employee.models.HrDocumentStorage", [], {})
+
+
+hr_document_storage = HrDocumentStorage()
 
 class EmployeeType(models.TextChoices):
     FULL_TIME = "Full-Time"
@@ -18,6 +36,19 @@ class Status(models.TextChoices):
     ACTIVE = "Active"
     SUSPENDED = "Suspended"
     PENDING = "PENDING"
+
+
+class ContractType(models.TextChoices):
+    PERMANENT = "permanent", "Permanent"
+    FIXED_TERM = "fixed-term", "Fixed-term"
+    INTERN = "intern", "Intern"
+
+
+class DocumentType(models.TextChoices):
+    ID_COPY = "id-copy", "ID copy"
+    CONTRACT = "contract", "Contract"
+    QUALIFICATION = "qualification", "Qualification"
+    OTHER = "other", "Other"
     
 
 class Department(models.Model):
@@ -58,6 +89,13 @@ class Employee(models.Model):
     postal_code = models.CharField(max_length=20, null=True)
     
     # Details of employment
+    company = models.ForeignKey(
+        "company.Company",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="employees",
+    )
     designation = models.ForeignKey(Designation, on_delete=models.PROTECT, related_name='designation')
     date_hired = models.DateField(null=True, blank=True, help_text='Employee hired date.')
     date_departed = models.DateField(null=True, blank=True, help_text='Employee resigned on this date.')
@@ -78,13 +116,28 @@ class Employee(models.Model):
     
     def __str__(self):
         return f'Employee: {self.first_name} {self.last_name}'
-    
-    
+
+    def get_full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return " ".join(part for part in parts if part)
+
+    def clean(self):
+        super().clean()
+        if self.date_hired and self.date_departed and self.date_departed < self.date_hired:
+            raise ValidationError({
+                "date_departed": "Date departed cannot be before date hired.",
+            })
+
     def save(self, *args, **kwargs):
-        if self.emp_code == "":
-            name = textwrap.shorten(self.last_name, width=3, placeholder='')
-            self.emp_code = name.upper() + "00" + str(self.id)
-        return super().save(*args, **kwargs)
+        generate_code = not self.emp_code
+        if generate_code:
+            self.emp_code = ("T" + uuid.uuid4().hex)[:10]
+        super().save(*args, **kwargs)
+        if generate_code:
+            name = textwrap.shorten(self.last_name or "", width=3, placeholder="")
+            prefix = (name.upper() or "EMP")[:3]
+            self.emp_code = f"{prefix}00{self.pk}"[:10]
+            super().save(update_fields=["emp_code"])
     
     
 class Benefits(models.Model):
@@ -201,6 +254,110 @@ class BankInfo(models.Model):
     
     def __str__(self):
         return f'{self.employee} banks at {self.name}'
+
+    def masked_account_number(self):
+        raw = self.account_number or ""
+        digits = "".join(character for character in raw if character.isdigit())
+        if len(digits) < 4:
+            return ""
+        return f"•••• {digits[-4:]}"
+
+
+class Contract(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="contracts")
+    contract_type = models.CharField(max_length=20, choices=ContractType.choices)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    job_title = models.CharField(max_length=150)
+    job_description = models.TextField(blank=True)
+    notice_period_days = models.PositiveIntegerField(help_text="Notice period in days")
+    signed_date = models.DateField(null=True, blank=True)
+    is_current = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-is_current", "-start_date", "-id"]
+
+    def __str__(self):
+        return f"{self.employee} — {self.job_title}"
+
+    def clean(self):
+        super().clean()
+        if self.contract_type == ContractType.FIXED_TERM and not self.end_date:
+            raise ValidationError({
+                "end_date": "End date is required for a fixed-term contract.",
+            })
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({
+                "end_date": "End date must be on or after the start date.",
+            })
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.is_current:
+            Contract.objects.filter(employee=self.employee, is_current=True).exclude(pk=self.pk).update(is_current=False)
+
+
+class Qualification(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="qualifications")
+    institution = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
+    year_completed = models.PositiveIntegerField(
+        validators=[MinValueValidator(1950), MaxValueValidator(2100)],
+    )
+    nqf_level = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
+
+    class Meta:
+        ordering = ["-year_completed", "name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.institution})"
+
+
+class EmploymentHistory(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="employment_history")
+    employer = models.CharField(max_length=200)
+    role = models.CharField(max_length=150)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    reason_for_leaving = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-start_date", "-id"]
+        verbose_name_plural = "Employment history"
+
+    def __str__(self):
+        return f"{self.role} at {self.employer}"
+
+    def clean(self):
+        super().clean()
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({
+                "end_date": "End date cannot be before the start date.",
+            })
+
+
+def hr_document_path(instance, filename):
+    return f"{instance.employee_id}/{filename}"
+
+
+class EmployeeDocument(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="documents")
+    title = models.CharField(max_length=200)
+    document_type = models.CharField(max_length=20, choices=DocumentType.choices)
+    file = models.FileField(upload_to=hr_document_path, storage=hr_document_storage)
+    date_added = models.DateField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="uploaded_documents")
+
+    class Meta:
+        ordering = ["-date_added", "-id"]
+
+    def __str__(self):
+        return self.title
     
 
 

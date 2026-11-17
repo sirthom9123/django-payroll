@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — Payroll</title>
+  <link rel="stylesheet" href="{% static 'hr/hr.css' %}">
+</head>
+<body>
+  <main class="sign-in panel" id="content">
+    <h1>Sign in</h1>
+    <p class="lede">Staff sign in for HR and payroll. Employees will use the same page when their own area is open.</p>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <p class="error">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}" class="required">Username</label>
+        {{ form.username }}
+        {% for error in form.username.errors %}<p class="error">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}" class="required">Password</label>
+        {{ form.password }}
+        {% for error in form.password.errors %}<p class="error">{{ error }}</p>{% endfor %}
+      </div>
+      {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+      <button type="submit">Sign in</button>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{% extends "hr/base.html" %}
+{% block title %}View only{% endblock %}
+{% block content %}
+<h1>View only</h1>
+<p>You can view this file. Only HR can change it.</p>
+<p><a href="{% url 'hr:employee_list' %}">Back to employees</a></p>
+{% endblock %}

@@ -60,6 +60,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+hr_documents/
 
 # Flask stuff:
 instance/
@@ -145,3 +146,11 @@ Scripts/
 
 assets/
 www/
+
+# Payroll: keep out of git (agent/IDE config, rules, static folders, uploaded media)
+static/
+media/
+.cursor/
+.claude/
+CLAUDE.md
+AGENTS.md

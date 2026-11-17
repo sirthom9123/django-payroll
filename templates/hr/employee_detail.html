@@ -1,0 +1,199 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ employee.get_full_name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:employee_list' %}">Employees</a></p>
+<header>
+  <h1>{{ employee.get_full_name }}</h1>
+  <p class="meta">{{ employee.emp_code }} · {{ employee.get_status_display }} · {{ employee.designation.name }}</p>
+</header>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Personal</h2>
+    {% if hr_can_edit %}
+    <a class="button" href="{% url 'hr:employee_edit' employee.pk %}">Edit employee</a>
+    {% endif %}
+  </div>
+  <dl>
+    <dt>ID number</dt><dd>{{ employee.id_number|default:"—" }}</dd>
+    <dt>Passport number</dt><dd>{{ employee.passport|default:"—" }}</dd>
+    <dt>Email</dt><dd>{{ employee.email_address|default:"—" }}</dd>
+    <dt>Phone</dt><dd>{{ employee.phone|default:"—" }}</dd>
+    <dt>Alternate phone</dt><dd>{{ employee.alt_phone|default:"—" }}</dd>
+    <dt>Home address</dt><dd>{{ employee.address|default:"—" }}</dd>
+    <dt>City</dt><dd>{{ employee.city|default:"—" }}</dd>
+    <dt>Postal code</dt><dd>{{ employee.postal_code|default:"—" }}</dd>
+    <dt>Country</dt><dd>{{ employee.country|default:"—" }}</dd>
+  </dl>
+</section>
+
+<section class="panel">
+  <h2>Job</h2>
+  <dl>
+    <dt>Company</dt><dd>{{ employee.company|default:"—" }}</dd>
+    <dt>Designation</dt><dd>{{ employee.designation.name }}</dd>
+    <dt>Department</dt><dd>{{ employee.designation.department.name }}</dd>
+    <dt>Employment type</dt><dd>{{ employee.get_employee_type_display }}</dd>
+    <dt>Date hired</dt><dd>{% if employee.date_hired %}{{ employee.date_hired|date:"j F Y" }}{% else %}—{% endif %}</dd>
+    <dt>Date departed</dt><dd>{% if employee.date_departed %}{{ employee.date_departed|date:"j F Y" }}{% else %}—{% endif %}</dd>
+    <dt>Pension number</dt><dd>{{ employee.pension_number|default:"—" }}</dd>
+  </dl>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Contract</h2>
+    {% if hr_can_edit %}
+      {% if current_contract %}
+      <a class="button" href="{% url 'hr:contract_form' employee.pk %}">Edit contract</a>
+      {% else %}
+      <a class="button" href="{% url 'hr:contract_form' employee.pk %}">Add contract</a>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if contracts %}
+    {% for contract in contracts %}
+    <h3>{% if contract.is_current %}Current{% else %}Earlier{% endif %}: {{ contract.job_title }}</h3>
+    <dl>
+      <dt>Type</dt><dd>{{ contract.get_contract_type_display }}</dd>
+      <dt>Start</dt><dd>{{ contract.start_date|date:"j F Y" }}</dd>
+      <dt>End</dt><dd>{% if contract.end_date %}{{ contract.end_date|date:"j F Y" }}{% else %}—{% endif %}</dd>
+      <dt>Notice period</dt><dd>{{ contract.notice_period_days }} days</dd>
+      <dt>Signed</dt><dd>{% if contract.signed_date %}{{ contract.signed_date|date:"j F Y" }}{% else %}—{% endif %}</dd>
+      <dt>Job description</dt><dd>{{ contract.job_description|default:"—" }}</dd>
+    </dl>
+    {% endfor %}
+  {% else %}
+  <p class="empty">No contract on file.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Qualifications</h2>
+    {% if hr_can_edit %}
+    <a class="button" href="{% url 'hr:qualification_create' employee.pk %}">Add qualification</a>
+    {% endif %}
+  </div>
+  {% if qualifications %}
+  <table>
+    <thead>
+      <tr>
+        <th>Qualification</th>
+        <th>Institution</th>
+        <th>Year</th>
+        <th>NQF level</th>
+        {% if hr_can_edit %}<th></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in qualifications %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.institution }}</td>
+        <td>{{ item.year_completed }}</td>
+        <td>{{ item.nqf_level|default:"—" }}</td>
+        {% if hr_can_edit %}
+        <td><a href="{% url 'hr:qualification_edit' employee.pk item.pk %}">Edit</a></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No qualifications on file.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Employment history</h2>
+    {% if hr_can_edit %}
+    <a class="button" href="{% url 'hr:history_create' employee.pk %}">Add employment history</a>
+    {% endif %}
+  </div>
+  {% if history %}
+  <table>
+    <thead>
+      <tr>
+        <th>Employer</th>
+        <th>Role</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Reason for leaving</th>
+        {% if hr_can_edit %}<th></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in history %}
+      <tr>
+        <td>{{ item.employer }}</td>
+        <td>{{ item.role }}</td>
+        <td>{{ item.start_date|date:"j F Y" }}</td>
+        <td>{% if item.end_date %}{{ item.end_date|date:"j F Y" }}{% else %}—{% endif %}</td>
+        <td>{{ item.reason_for_leaving|default:"—" }}</td>
+        {% if hr_can_edit %}
+        <td><a href="{% url 'hr:history_edit' employee.pk item.pk %}">Edit</a></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No earlier employment on file.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Documents</h2>
+    {% if hr_can_edit %}
+    <a class="button" href="{% url 'hr:document_create' employee.pk %}">Add document</a>
+    {% endif %}
+  </div>
+  {% if documents %}
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Date added</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in documents %}
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.get_document_type_display }}</td>
+        <td>{{ item.date_added|date:"j F Y" }}</td>
+        <td><a href="{% url 'hr:document_download' item.pk %}">Download</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No documents on file.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Bank</h2>
+  {% if banks %}
+    {% for bank in banks %}
+    <dl>
+      <dt>Bank</dt><dd>{{ bank.name|default:"—" }}</dd>
+      <dt>Account</dt>
+      <dd>{% if bank.masked_account_number %}{{ bank.masked_account_number }}{% else %}Account number is not on file.{% endif %}</dd>
+    </dl>
+    {% endfor %}
+  {% else %}
+  <p class="empty">No bank details on file.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Leave</h2>
+  <p>Leave is not captured yet.</p>
+</section>
+{% endblock %}

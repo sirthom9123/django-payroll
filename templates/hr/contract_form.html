@@ -1,0 +1,14 @@
+{% extends "hr/base.html" %}
+{% block title %}Contract{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:employee_detail' employee.pk %}">{{ employee.get_full_name }}</a></p>
+<h1>Contract</h1>
+{% if has_current and not replace %}
+<p class="help"><a href="{% url 'hr:contract_form' employee.pk %}?new=1">File a new contract</a>. The earlier contract stays on the file.</p>
+{% endif %}
+<form method="post">
+  {% include "hr/_fields.html" %}
+  {% if replace %}<input type="hidden" name="replace" value="1">{% endif %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+{% endblock %}

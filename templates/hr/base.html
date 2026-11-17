@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HR{% endblock %} — Payroll</title>
+  <link rel="stylesheet" href="{% static 'hr/hr.css' %}">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="shell">
+    <header class="top">
+      <a class="brand" href="{% url 'hr:home' %}">Payroll HR</a>
+      <nav aria-label="HR">
+        {% if hr_can_view %}
+        <a href="{% url 'hr:home' %}">Home</a>
+        <a href="{% url 'hr:employee_list' %}">Employees</a>
+        {% endif %}
+        <a href="{% url 'admin:index' %}">Admin</a>
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="secondary" type="submit">Sign out</button>
+        </form>
+        {% endif %}
+      </nav>
+    </header>
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <main id="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>
