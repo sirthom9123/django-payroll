@@ -5,7 +5,8 @@ from employee.models import Employee
 
 HR_GROUP = "HR"
 PAYROLL_GROUP = "Payroll"
-ORGANISATION_GROUPS = (HR_GROUP, PAYROLL_GROUP)
+MANAGER_GROUP = "Manager"
+ORGANISATION_GROUPS = (HR_GROUP, PAYROLL_GROUP, MANAGER_GROUP)
 
 
 def group_names(user):
@@ -40,6 +41,14 @@ def can_run_payroll(user):
     if user.is_superuser:
         return True
     return PAYROLL_GROUP in group_names(user)
+
+
+def can_manage_leave(user):
+    if not user.is_authenticated or not user.is_staff:
+        return False
+    if user.is_superuser:
+        return True
+    return MANAGER_GROUP in group_names(user)
 
 
 def visible_companies(user):

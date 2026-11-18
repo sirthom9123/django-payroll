@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from employee.access import can_edit_hr, can_run_payroll, can_use_hr, visible_employees
+from leave.balance import annual_cycle, balances_for
+from leave.models import LeaveApplication, LeaveStatus
 from employee.forms import (
     ContractForm,
     EmployeeDocumentForm,
@@ -91,9 +93,14 @@ def home(request):
         start_date__year=today.year,
         start_date__month=today.month,
     ).count()
+    open_leave = LeaveApplication.objects.filter(
+        employee__in=employees,
+        status=LeaveStatus.SUBMITTED,
+    ).count()
     return render(request, "hr/home.html", {
         "active_employees": active_employees,
         "payroll_runs": payroll_runs,
+        "open_leave": open_leave,
         "month_label": date(today.year, today.month, 1).strftime("%B %Y"),
     })
 
@@ -161,6 +168,7 @@ def employee_detail(request, pk):
             gross_form.save()
             messages.success(request, "Gross salary saved.")
             return redirect("hr:employee_detail", pk=employee.pk)
+    leave_as_of = timezone.localdate()
     return render(request, "hr/employee_detail.html", {
         "employee": employee,
         "gross_form": gross_form,
@@ -170,6 +178,10 @@ def employee_detail(request, pk):
         "history": employee.employment_history.all(),
         "documents": employee.documents.all(),
         "banks": employee.bankinfo_set.all(),
+        "leave_as_of": leave_as_of,
+        "leave_cycle": annual_cycle(employee, leave_as_of),
+        "leave_balances": balances_for(employee, leave_as_of),
+        "leave_applications": employee.leave_applications.select_related("leave_type"),
     })
 
 

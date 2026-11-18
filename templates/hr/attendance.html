@@ -1,0 +1,89 @@
+{% extends "hr/base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Attendance register</h1>
+  <a href="{% url 'hr:timesheet' %}">Timesheet</a>
+</div>
+<p class="lede">HR records the day. There is no clock-in device.</p>
+<form method="get" class="filters">
+  <div class="field">
+    <label for="attendance-date">Date</label>
+    <input id="attendance-date" type="date" name="date" value="{{ day|date:'Y-m-d' }}">
+    {% if date_error %}<p class="error">{{ date_error }}</p>{% endif %}
+  </div>
+  <button type="submit" class="secondary">Show this date</button>
+</form>
+{% if not employees %}
+<p class="empty">No employees yet.</p>
+{% if hr_can_edit %}
+<p><a class="button" href="{% url 'hr:employee_create' %}">Add employee</a></p>
+{% endif %}
+{% elif formset %}
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}
+    {% for error in formset.non_form_errors %}
+    <p class="error">{{ error }}</p>
+    {% endfor %}
+  {% endif %}
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Status</th>
+        <th>Hours worked</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in paired %}
+      <tr>
+        <td>
+          {% if row.employee %}
+          {{ row.employee.get_full_name }}
+          <span class="meta">{{ row.employee.emp_code }}</span>
+          {% else %}
+          Unknown employee
+          {% endif %}
+        </td>
+        <td>
+          {{ row.form.employee_id }}
+          <label for="{{ row.form.status.id_for_label }}">Status{% if row.employee %} for {{ row.employee.get_full_name }}{% endif %}</label>
+          {{ row.form.status }}
+          {% for error in row.form.status.errors %}<p class="error">{{ error }}</p>{% endfor %}
+          {% for error in row.form.employee_id.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        </td>
+        <td>
+          <label for="{{ row.form.hours_worked.id_for_label }}">Hours worked{% if row.employee %} for {{ row.employee.get_full_name }}{% endif %}</label>
+          {{ row.form.hours_worked }}
+          {% for error in row.form.hours_worked.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="submit">Save register</button>
+</form>
+{% else %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Status</th>
+      <th>Hours worked</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in view_rows %}
+    <tr>
+      <td>{{ row.employee.get_full_name }}</td>
+      <td>{% if row.record %}{{ row.record.get_status_display }}{% else %}Not recorded{% endif %}</td>
+      <td>{% if row.record %}{{ row.record.hours_worked|floatformat:2 }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

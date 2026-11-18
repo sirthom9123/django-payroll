@@ -1,0 +1,41 @@
+{% extends "hr/base.html" %}
+{% block title %}Leave{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Leave applications</h1>
+  {% if hr_can_edit %}
+  <a class="button" href="{% url 'hr:leave_create' %}">Capture leave</a>
+  {% endif %}
+</div>
+{% if hr_can_manage %}
+<p><a href="{% url 'hr:leave_approvals' %}">Approval queue</a></p>
+{% endif %}
+{% if applications %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Type</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Days</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in applications %}
+    <tr>
+      <td><a href="{% url 'hr:leave_detail' item.pk %}">{{ item.employee.get_full_name }}</a></td>
+      <td>{{ item.leave_type.name }}</td>
+      <td>{{ item.start_date|date:"j F Y" }}</td>
+      <td>{{ item.end_date|date:"j F Y" }}</td>
+      <td>{{ item.days|floatformat:2 }}</td>
+      <td>{{ item.get_status_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No leave applications yet.</p>
+{% endif %}
+{% endblock %}

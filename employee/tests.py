@@ -243,7 +243,8 @@ class EmployeeRecordTests(HrFixture):
         self.assertContains(detail, "ID copy")
         self.assertContains(detail, "•••• 5544")
         self.assertNotContains(detail, "998877665544")
-        self.assertContains(detail, "Leave is not captured yet.")
+        self.assertContains(detail, "Annual leave")
+        self.assertContains(detail, "Entitled")
 
     def test_list_search_and_filters(self):
         _, first = self.create_employee()
@@ -357,7 +358,8 @@ class EmployeeRecordTests(HrFixture):
         self.client.force_login(self.hr)
         response = self.client.get(reverse("hr:home"))
         self.assertContains(response, '<p class="count">1</p>', count=2)
-        self.assertContains(response, "Leave is not captured yet.")
+        self.assertContains(response, "Open leave")
+        self.assertContains(response, '<p class="count">0</p>')
 
     def test_other_company_file_is_not_visible(self):
         other_company = Company.objects.create(

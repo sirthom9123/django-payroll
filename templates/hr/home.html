@@ -14,7 +14,12 @@
   </section>
   <section class="card">
     <h2>Open leave</h2>
-    <p>Leave is not captured yet.</p>
+    <p class="count">{{ open_leave }}</p>
+    {% if hr_can_manage %}
+    <p><a href="{% url 'hr:leave_approvals' %}">Approval queue</a></p>
+    {% else %}
+    <p><a href="{% url 'hr:leave_list' %}">Leave applications</a></p>
+    {% endif %}
   </section>
 </div>
 <p><a class="button" href="{% url 'hr:employee_list' %}">View employees</a></p>

@@ -115,6 +115,12 @@ class Employee(models.Model):
     )
     designation = models.ForeignKey(Designation, on_delete=models.PROTECT, related_name='designation')
     date_hired = models.DateField(null=True, blank=True, help_text='Employee hired date.')
+    days_per_week = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(7)],
+        help_text="Days this employee works each week. Family responsibility leave needs at least 4.",
+    )
     date_departed = models.DateField(null=True, blank=True, help_text='Employee resigned on this date.')
     gross_salary = models.DecimalField(
         max_digits=12,

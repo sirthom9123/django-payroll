@@ -36,6 +36,7 @@
     <dt>Department</dt><dd>{{ employee.designation.department.name }}</dd>
     <dt>Employment type</dt><dd>{{ employee.get_employee_type_display }}</dd>
     <dt>Date hired</dt><dd>{% if employee.date_hired %}{{ employee.date_hired|date:"j F Y" }}{% else %}—{% endif %}</dd>
+    <dt>Days per week</dt><dd>{% if employee.days_per_week %}{{ employee.days_per_week }}{% else %}—{% endif %}</dd>
     <dt>Date departed</dt><dd>{% if employee.date_departed %}{{ employee.date_departed|date:"j F Y" }}{% else %}—{% endif %}</dd>
     <dt>Gross salary</dt>
     <dd>
@@ -211,7 +212,76 @@
 </section>
 
 <section class="panel">
-  <h2>Leave</h2>
-  <p>Leave is not captured yet.</p>
+  <div class="section-head">
+    <h2>Leave</h2>
+    {% if hr_can_edit %}
+    <a class="button" href="{% url 'hr:leave_create' %}?employee={{ employee.pk }}">Capture leave</a>
+    {% endif %}
+  </div>
+  <p class="help">
+    {% if leave_cycle %}
+    Leave cycle {{ leave_cycle.0|date:"j F Y" }} – {{ leave_cycle.1|date:"j F Y" }}, as at {{ leave_as_of|date:"j F Y" }}.
+    Annual leave accumulates over that cycle. It is not granted in full on the first day.
+    {% else %}
+    Enter a hire date to calculate leave.
+    {% endif %}
+    Taken is approved leave. Pending is leave waiting for a decision. Days are Monday to Friday.
+  </p>
+  {% if leave_balances %}
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Entitled</th>
+        <th>Taken</th>
+        <th>Pending</th>
+        <th>Remaining</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in leave_balances %}
+      <tr>
+        <td>
+          {{ row.leave_type.name }}
+          <div class="help">{{ row.detail }}</div>
+        </td>
+        <td>{{ row.entitled_label }}</td>
+        <td>{{ row.taken|floatformat:2 }}</td>
+        <td>{{ row.pending|floatformat:2 }}</td>
+        <td>{{ row.remaining_label }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No leave types for this company yet.</p>
+  {% endif %}
+  <h2>Applications</h2>
+  {% if leave_applications %}
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Days</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in leave_applications %}
+      <tr>
+        <td><a href="{% url 'hr:leave_detail' item.pk %}">{{ item.leave_type.name }}</a></td>
+        <td>{{ item.start_date|date:"j F Y" }}</td>
+        <td>{{ item.end_date|date:"j F Y" }}</td>
+        <td>{{ item.days|floatformat:2 }}</td>
+        <td>{{ item.get_status_display }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No leave applications yet.</p>
+  {% endif %}
 </section>
 {% endblock %}
