@@ -51,6 +51,15 @@ def can_manage_leave(user):
     return MANAGER_GROUP in group_names(user)
 
 
+def can_file_performance(user):
+    if not user.is_authenticated or not user.is_staff:
+        return False
+    if user.is_superuser:
+        return True
+    names = group_names(user)
+    return HR_GROUP in names or MANAGER_GROUP in names
+
+
 def visible_companies(user):
     if not user.is_authenticated:
         return Company.objects.none()

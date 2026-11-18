@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from employee.access import can_edit_hr, can_run_payroll, can_use_hr, visible_employees
 from leave.balance import annual_cycle, balances_for
+from performance.records import file_summary
 from leave.models import LeaveApplication, LeaveStatus
 from employee.forms import (
     ContractForm,
@@ -182,6 +183,7 @@ def employee_detail(request, pk):
         "leave_cycle": annual_cycle(employee, leave_as_of),
         "leave_balances": balances_for(employee, leave_as_of),
         "leave_applications": employee.leave_applications.select_related("leave_type"),
+        **file_summary(employee),
     })
 
 

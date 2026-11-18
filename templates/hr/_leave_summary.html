@@ -5,9 +5,9 @@
   <dt>End</dt><dd>{{ application.end_date|date:"j F Y" }}</dd>
   <dt>Working days</dt><dd>{{ application.days|floatformat:2 }}</dd>
   <dt>Reason</dt><dd>{{ application.reason }}</dd>
-  {% if application.leave_type.kind == "parental" %}
+  {% if application.leave_type.kind == "parental" or application.leave_type.kind == "maternity" %}
   <dt>Other parent employed</dt>
-  <dd>{% if application.other_parent_employed %}Yes. Both parents share 4 months and 10 days.{% elif application.other_parent_employed == False %}No. This employee gets 4 consecutive months.{% else %}—{% endif %}</dd>
+  <dd>{% if application.other_parent_employed %}Yes{% elif application.other_parent_employed == False %}No{% else %}—{% endif %}</dd>
   {% endif %}
   <dt>Proof</dt>
   <dd>{% if application.proof %}<a href="{% url 'hr:leave_proof' application.pk %}">Download proof</a>{% else %}No proof attached.{% endif %}</dd>

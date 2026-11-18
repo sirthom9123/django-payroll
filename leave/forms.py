@@ -4,7 +4,20 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from employee.access import visible_companies, visible_employees
-from leave.models import AttendanceStatus, LeaveApplication, LeaveType
+from leave.models import AttendanceStatus, LeaveApplication, LeaveKind, LeaveType
+
+
+class LeaveTypeSelect(forms.Select):
+    def __init__(self, *args, kinds=None, **kwargs):
+        self.kinds = kinds or {}
+        super().__init__(*args, **kwargs)
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        kind = self.kinds.get(str(getattr(value, "value", value)))
+        if kind:
+            option["attrs"]["data-kind"] = kind
+        return option
 
 
 class LeaveApplicationForm(forms.ModelForm):
@@ -12,6 +25,7 @@ class LeaveApplicationForm(forms.ModelForm):
         model = LeaveApplication
         fields = ["employee", "leave_type", "start_date", "end_date", "reason", "other_parent_employed", "proof"]
         widgets = {
+            "leave_type": LeaveTypeSelect(),
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "end_date": forms.DateInput(attrs={"type": "date"}),
             "reason": forms.Textarea(attrs={"rows": 4}),
@@ -33,6 +47,7 @@ class LeaveApplicationForm(forms.ModelForm):
         self.fields["start_date"].help_text = "Monday to Friday. A public holiday inside annual leave is not deducted."
         self.fields["other_parent_employed"].required = False
         self.fields["other_parent_employed"].label = "Other parent employed"
+        self.fields["other_parent_employed"].help_text = "Maternity and parental leave only."
         for name in ("start_date", "end_date"):
             self.fields[name].localize = False
             self.fields[name].input_formats = ["%Y-%m-%d"]
@@ -43,6 +58,11 @@ class LeaveApplicationForm(forms.ModelForm):
             types = types.filter(company__employees__pk=employee_id)
         self.fields["leave_type"].queryset = types.order_by("name")
         self.fields["leave_type"].label_from_instance = lambda obj: obj.name
+        self.fields["leave_type"].widget.kinds = {
+            str(item.pk): item.kind for item in self.fields["leave_type"].queryset
+        }
+        if self._selected_leave_kind() not in (LeaveKind.MATERNITY, LeaveKind.PARENTAL):
+            self.fields["other_parent_employed"].widget.attrs["disabled"] = True
 
     def _selected_employee_id(self):
         if self.is_bound:
@@ -57,6 +77,30 @@ class LeaveApplicationForm(forms.ModelForm):
             return int(raw)
         except (TypeError, ValueError):
             return None
+
+    def _selected_leave_kind(self):
+        raw = None
+        if self.is_bound:
+            raw = self.data.get(self.add_prefix("leave_type"))
+        elif getattr(self.instance, "leave_type_id", None):
+            return self.instance.leave_type.kind
+        else:
+            raw = self.initial.get("leave_type")
+        if raw in (None, ""):
+            return None
+        try:
+            pk = int(getattr(raw, "pk", raw))
+        except (TypeError, ValueError):
+            return None
+        match = self.fields["leave_type"].queryset.filter(pk=pk).first()
+        return match.kind if match else None
+
+    def clean(self):
+        cleaned = super().clean()
+        leave_type = cleaned.get("leave_type")
+        if leave_type is None or leave_type.kind not in (LeaveKind.MATERNITY, LeaveKind.PARENTAL):
+            cleaned["other_parent_employed"] = None
+        return cleaned
 
 
 class AttendanceRowForm(forms.Form):

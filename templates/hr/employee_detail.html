@@ -284,4 +284,116 @@
   <p class="empty">No leave applications yet.</p>
   {% endif %}
 </section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Performance</h2>
+    {% if hr_can_file_performance %}
+    <a class="button" href="{% url 'hr:agreement_create' %}?employee={{ employee.pk }}">New agreement</a>
+    {% endif %}
+  </div>
+  <p class="help">Employees do not see performance records on their own sign-in.</p>
+  <h3>Agreements</h3>
+  {% if performance_agreements %}
+  <table>
+    <thead>
+      <tr>
+        <th>Cycle</th>
+        <th>Status</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in performance_agreements %}
+      <tr>
+        <td><a href="{% url 'hr:agreement_detail' item.pk %}">{{ item.cycle }}</a></td>
+        <td>{{ item.get_status_display }}</td>
+        <td>
+          {% if item.appraisal %}
+            {% if item.appraisal.overall_score != None %}
+            {{ item.appraisal.overall_score|floatformat:2 }} out of 5
+            {% else %}
+            Not scored
+            {% endif %}
+          {% else %}
+          Not appraised
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No performance agreements yet.</p>
+  {% endif %}
+  <h3>Improvement plans</h3>
+  {% if improvement_plans %}
+  <table>
+    <thead>
+      <tr>
+        <th>Start</th>
+        <th>Review</th>
+        <th>Outcome</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in improvement_plans %}
+      <tr>
+        <td>{{ item.start_date|date:"j F Y" }}</td>
+        <td>{{ item.review_date|date:"j F Y" }}</td>
+        <td>{{ item.get_outcome_display }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No performance improvement plans yet.</p>
+  {% endif %}
+  <h3>Skills</h3>
+  {% if skill_assessments %}
+  <table>
+    <thead>
+      <tr>
+        <th>Skill</th>
+        <th>Level</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in skill_assessments %}
+      <tr>
+        <td>{{ item.skill }}</td>
+        <td>{{ item.level }}</td>
+        <td>{{ item.assessed_on|date:"j F Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No skills assessments yet.</p>
+  {% endif %}
+  <h3>Development plans</h3>
+  {% if development_plans %}
+  <table>
+    <thead>
+      <tr>
+        <th>Skill gap</th>
+        <th>Due</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in development_plans %}
+      <tr>
+        <td>{{ item.skill_gap }}</td>
+        <td>{{ item.due_date|date:"j F Y" }}</td>
+        <td>{{ item.get_status_display }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No development plans yet.</p>
+  {% endif %}
+</section>
 {% endblock %}

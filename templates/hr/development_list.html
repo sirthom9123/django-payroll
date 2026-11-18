@@ -1,0 +1,41 @@
+{% extends "hr/base.html" %}
+{% block title %}Development plans{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Development plans</h1>
+  {% if hr_can_file_performance %}
+  <a class="button" href="{% url 'hr:development_create' %}">Add development plan</a>
+  {% endif %}
+</div>
+{% include "hr/_performance_nav.html" %}
+{% if plans %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Skill gap</th>
+      <th>Due</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in plans %}
+    <tr>
+      <td>{{ item.employee.get_full_name }}</td>
+      <td>
+        {% if hr_can_file_performance %}
+        <a href="{% url 'hr:development_edit' item.pk %}">{{ item.skill_gap }}</a>
+        {% else %}
+        {{ item.skill_gap }}
+        {% endif %}
+      </td>
+      <td>{{ item.due_date|date:"j F Y" }}</td>
+      <td>{{ item.get_status_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No development plans yet.</p>
+{% endif %}
+{% endblock %}

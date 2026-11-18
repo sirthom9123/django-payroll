@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "company",
     "employee",
     "leave",
+    "performance",
     
     
     # Third-party libraries

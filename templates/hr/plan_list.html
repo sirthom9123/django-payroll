@@ -1,0 +1,41 @@
+{% extends "hr/base.html" %}
+{% block title %}Improvement plans{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Performance improvement plans</h1>
+  {% if hr_can_file_performance %}
+  <a class="button" href="{% url 'hr:plan_create' %}">Add plan</a>
+  {% endif %}
+</div>
+{% include "hr/_performance_nav.html" %}
+{% if plans %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Start</th>
+      <th>Review</th>
+      <th>Outcome</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in plans %}
+    <tr>
+      <td>
+        {% if hr_can_file_performance %}
+        <a href="{% url 'hr:plan_edit' item.pk %}">{{ item.employee.get_full_name }}</a>
+        {% else %}
+        {{ item.employee.get_full_name }}
+        {% endif %}
+      </td>
+      <td>{{ item.start_date|date:"j F Y" }}</td>
+      <td>{{ item.review_date|date:"j F Y" }}</td>
+      <td>{{ item.get_outcome_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No performance improvement plans yet.</p>
+{% endif %}
+{% endblock %}
