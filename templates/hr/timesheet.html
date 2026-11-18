@@ -1,0 +1,46 @@
+{% extends "hr/base.html" %}
+{% block title %}Timesheet{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:attendance' %}">Attendance register</a></p>
+<h1>Timesheet</h1>
+<p class="lede">{{ start|date:"j F Y" }} – {{ end|date:"j F Y" }}. Absenteeism counts absent days with no approved leave on that date.</p>
+<form method="get" class="filters">
+  <div class="field">
+    <label for="week">Week containing</label>
+    <input id="week" type="date" name="week" value="{{ week_value }}">
+    {% if week_error %}<p class="error">{{ week_error }}</p>{% endif %}
+  </div>
+  <button type="submit">Show week</button>
+</form>
+{% if has_attendance %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      {% for day in days %}
+      <th>{{ day|date:"D j M" }}</th>
+      {% endfor %}
+      <th>Total</th>
+      <th>Absenteeism</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.employee.get_full_name }}</td>
+      {% for hours in row.hours %}
+      <td>{% if hours is None %}—{% else %}{{ hours|floatformat:2 }}{% endif %}</td>
+      {% endfor %}
+      <td class="total">{% if row.total is None %}—{% else %}{{ row.total|floatformat:2 }}{% endif %}</td>
+      <td class="absent-count">{{ row.absenteeism }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No attendance for this week.</p>
+{% if hr_can_edit %}
+<p><a class="button" href="{% url 'hr:attendance' %}?date={{ week_value }}">Open the register</a></p>
+{% endif %}
+{% endif %}
+{% endblock %}

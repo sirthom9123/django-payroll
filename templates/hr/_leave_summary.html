@@ -1,0 +1,35 @@
+<dl>
+  <dt>Employee</dt><dd>{{ application.employee.get_full_name }}</dd>
+  <dt>Leave type</dt><dd>{{ application.leave_type.name }}</dd>
+  <dt>Start</dt><dd>{{ application.start_date|date:"j F Y" }}</dd>
+  <dt>End</dt><dd>{{ application.end_date|date:"j F Y" }}</dd>
+  <dt>Working days</dt><dd>{{ application.days|floatformat:2 }}</dd>
+  <dt>Reason</dt><dd>{{ application.reason }}</dd>
+  {% if application.leave_type.kind == "parental" %}
+  <dt>Other parent employed</dt>
+  <dd>{% if application.other_parent_employed %}Yes. Both parents share 4 months and 10 days.{% elif application.other_parent_employed == False %}No. This employee gets 4 consecutive months.{% else %}—{% endif %}</dd>
+  {% endif %}
+  <dt>Proof</dt>
+  <dd>{% if application.proof %}<a href="{% url 'hr:leave_proof' application.pk %}">Download proof</a>{% else %}No proof attached.{% endif %}</dd>
+  <dt>Status</dt><dd>{{ application.get_status_display }}</dd>
+  {% if application.decision_note %}
+  <dt>Note</dt><dd>{{ application.decision_note }}</dd>
+  {% endif %}
+</dl>
+{% if balance %}
+<p class="help">
+  {% if balance.cycle_label %}{{ balance.cycle_label }}.{% endif %}
+  {% if balance.leave_type.kind == "unpaid" %}
+  Unpaid leave is not limited. {{ balance.taken|floatformat:2 }} days already approved.
+  {% elif balance.leave_type.kind == "maternity" %}
+  Maternity leave is 4 consecutive months. {{ balance.taken|floatformat:2 }} working days already approved in this cycle.
+  {% elif balance.leave_type.kind == "parental" %}
+  Parental leave is 4 consecutive months for the only employed parent, or 4 months and 10 days shared when both parents are employed.
+  {% else %}
+  {{ balance.entitled_label }} accumulated,
+  {{ balance.taken|floatformat:2 }} taken,
+  {{ balance.pending|floatformat:2 }} pending,
+  {{ balance.remaining_label }} remaining.
+  {% endif %}
+</p>
+{% endif %}

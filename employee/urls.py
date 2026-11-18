@@ -27,6 +27,7 @@ hr_urlpatterns = [
     path("payroll/<int:pk>/edit/", payroll_views.payroll_edit, name="payroll_edit"),
     path("payroll/<int:pk>/payment/", payroll_views.payroll_payment, name="payroll_payment"),
     path("payroll/<int:pk>/payslip/", payroll_views.payroll_payslip, name="payroll_payslip"),
+    path("", include("leave.urls")),
 ]
 
 urlpatterns = [

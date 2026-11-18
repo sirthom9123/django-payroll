@@ -1,0 +1,24 @@
+{% extends "hr/base.html" %}
+{% block title %}Decide leave{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:leave_approvals' %}">Approval queue</a></p>
+<h1>Decide leave</h1>
+<section class="panel">
+  {% include "hr/_leave_summary.html" %}
+</section>
+{% if application.status == "submitted" %}
+<form method="post">
+  {% csrf_token %}
+  <div class="field">
+    <label for="decision_note">Note</label>
+    <p class="help">A note is required when you decline.</p>
+    <textarea id="decision_note" name="decision_note" rows="4">{{ note }}</textarea>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  </div>
+  <button type="submit" name="action" value="approve">Approve</button>
+  <button type="submit" name="action" value="decline" class="secondary">Decline</button>
+</form>
+{% else %}
+<p>This application is no longer waiting for a decision.</p>
+{% endif %}
+{% endblock %}

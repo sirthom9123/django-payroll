@@ -1,0 +1,7 @@
+{% extends "hr/base.html" %}
+{% block title %}Manager only{% endblock %}
+{% block content %}
+<h1>Manager only</h1>
+<p>Only a manager can approve or decline leave.</p>
+<p><a href="{% url 'hr:leave_list' %}">Back to leave</a></p>
+{% endblock %}

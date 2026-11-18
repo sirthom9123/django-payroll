@@ -1,0 +1,11 @@
+{% extends "hr/base.html" %}
+{% block title %}Capture leave{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:leave_list' %}">Leave applications</a></p>
+<h1>{{ heading }}</h1>
+<form method="post" enctype="multipart/form-data">
+  {% include "hr/_fields.html" %}
+  <button type="submit" name="action" value="submit">{{ submit_label }}</button>
+  <button type="submit" name="action" value="draft" class="secondary">Save draft</button>
+</form>
+{% endblock %}
