@@ -1,0 +1,7 @@
+{% extends "hr/base.html" %}
+{% block title %}View only{% endblock %}
+{% block content %}
+<h1>View only</h1>
+<p>You can view performance records. Only HR or a manager can file them.</p>
+<p><a href="{% url 'hr:agreement_list' %}">Back to performance</a></p>
+{% endblock %}

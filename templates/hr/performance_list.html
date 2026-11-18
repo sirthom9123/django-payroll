@@ -1,0 +1,45 @@
+{% extends "hr/base.html" %}
+{% block title %}Performance{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Performance agreements</h1>
+  {% if hr_can_file_performance %}
+  <a class="button" href="{% url 'hr:agreement_create' %}">New agreement</a>
+  {% endif %}
+</div>
+{% include "hr/_performance_nav.html" %}
+{% if agreements %}
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Cycle</th>
+      <th>Status</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in agreements %}
+    <tr>
+      <td><a href="{% url 'hr:agreement_detail' item.pk %}">{{ item.employee.get_full_name }}</a></td>
+      <td>{{ item.cycle }}</td>
+      <td>{{ item.get_status_display }}</td>
+      <td>
+        {% if item.appraisal %}
+          {% if item.appraisal.overall_score != None %}
+          {{ item.appraisal.overall_score|floatformat:2 }} out of 5
+          {% else %}
+          Not scored
+          {% endif %}
+        {% else %}
+        Not appraised
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No performance agreements yet.</p>
+{% endif %}
+{% endblock %}

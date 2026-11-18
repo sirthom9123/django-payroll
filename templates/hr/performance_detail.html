@@ -1,0 +1,108 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ agreement.cycle }}{% endblock %}
+{% block content %}
+<p>
+  <a href="{% url 'hr:agreement_list' %}">Performance agreements</a>
+  · <a href="{% url 'hr:employee_detail' agreement.employee.pk %}">{{ agreement.employee.get_full_name }}</a>
+</p>
+<div class="row">
+  <h1>{{ agreement.employee.get_full_name }} — {{ agreement.cycle }}</h1>
+  {% if hr_can_file_performance and agreement.status == "draft" %}
+  <a class="button" href="{% url 'hr:kpa_create' agreement.pk %}">Add KPA</a>
+  {% elif hr_can_file_performance and agreement.status == "active" and not appraisal %}
+  <a class="button" href="{% url 'hr:appraisal_form' agreement.pk %}">File appraisal</a>
+  {% endif %}
+</div>
+<dl>
+  <dt>Status</dt><dd>{{ agreement.get_status_display }}</dd>
+  <dt>Weights</dt><dd>{{ weight_total }} of 100</dd>
+</dl>
+{% if hr_can_file_performance and agreement.status != "closed" %}
+<p><a href="{% url 'hr:agreement_edit' agreement.pk %}">Update status</a></p>
+{% endif %}
+{% if areas %}
+  {% for area in areas %}
+  <section class="panel">
+    <div class="section-head">
+      <h2>{{ area.name }}</h2>
+      {% if hr_can_file_performance and agreement.status == "draft" %}
+      <a class="button" href="{% url 'hr:kpi_create' area.pk %}">Add indicator</a>
+      {% endif %}
+    </div>
+    {% if hr_can_file_performance and agreement.status == "draft" %}
+    <p><a href="{% url 'hr:kpa_edit' area.pk %}">Edit key performance area</a></p>
+    {% endif %}
+    {% if area.kpis.all %}
+    <table>
+      <thead>
+        <tr>
+          <th>Indicator</th>
+          <th>Measure</th>
+          <th>Weight</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for kpi in area.kpis.all %}
+        <tr>
+          <td>
+            {% if hr_can_file_performance and agreement.status == "draft" %}
+            <a href="{% url 'hr:kpi_edit' kpi.pk %}">{{ kpi.name }}</a>
+            {% else %}
+            {{ kpi.name }}
+            {% endif %}
+          </td>
+          <td>{{ kpi.measure }}</td>
+          <td>{{ kpi.weight }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No indicators on this key performance area yet.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+{% else %}
+<p class="empty">No key performance areas yet.</p>
+{% endif %}
+<section class="panel">
+  <h2>Appraisal</h2>
+  {% if appraisal %}
+  <dl>
+    <dt>Date</dt><dd>{{ appraisal.appraisal_date|date:"j F Y" }}</dd>
+    <dt>Score</dt>
+    <dd>
+      {% if appraisal.overall_score != None %}
+      {{ appraisal.overall_score|floatformat:2 }} out of 5
+      {% else %}
+      Not scored
+      {% endif %}
+    </dd>
+    <dt>Overall comment</dt><dd>{{ appraisal.overall_comment }}</dd>
+  </dl>
+  <table>
+    <thead>
+      <tr>
+        <th>Indicator</th>
+        <th>Score</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in appraisal.scores.all %}
+      <tr>
+        <td>{{ row.kpi.name }}</td>
+        <td>{{ row.score }}</td>
+        <td>{{ row.comment|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if hr_can_file_performance and agreement.status == "active" %}
+  <p><a href="{% url 'hr:appraisal_form' agreement.pk %}">Update appraisal</a></p>
+  {% endif %}
+  {% else %}
+  <p class="empty">No appraisal filed yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -18,6 +18,7 @@
         <a href="{% url 'hr:employee_list' %}">Employees</a>
         <a href="{% url 'hr:leave_list' %}">Leave</a>
         <a href="{% url 'hr:attendance' %}">Attendance</a>
+        <a href="{% url 'hr:agreement_list' %}">Performance</a>
         {% endif %}
         {% if hr_can_manage %}
         <a href="{% url 'hr:leave_approvals' %}">Approvals</a>
