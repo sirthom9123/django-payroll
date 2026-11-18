@@ -8,4 +8,26 @@
   <button type="submit" name="action" value="submit">{{ submit_label }}</button>
   <button type="submit" name="action" value="draft" class="secondary">Save draft</button>
 </form>
+<script>
+(function () {
+  var typeField = document.getElementById("id_leave_type");
+  var parentField = document.getElementById("id_other_parent_employed");
+  if (!typeField || !parentField) {
+    return;
+  }
+  function selectedKind() {
+    var selected = typeField.options[typeField.selectedIndex];
+    return selected ? selected.getAttribute("data-kind") : "";
+  }
+  function syncParentField() {
+    var open = selectedKind() === "maternity" || selectedKind() === "parental";
+    parentField.disabled = !open;
+    if (!open) {
+      parentField.value = "unknown";
+    }
+  }
+  typeField.addEventListener("change", syncParentField);
+  syncParentField();
+})();
+</script>
 {% endblock %}

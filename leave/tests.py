@@ -11,6 +11,7 @@ from django.utils import timezone
 from company.models import Company
 from employee.models import Employee
 from employee.tests import HrFixture
+from leave.forms import LeaveApplicationForm
 from leave.balance import (
     annual_leave_days,
     balances_for,
@@ -224,6 +225,24 @@ class LeaveApplicationTests(LeaveFixture):
         row = next(item for item in balances_for(employee, self.monday) if item["leave_type"].pk == self.annual.pk)
         self.assertEqual(row["taken"], Decimal("0.00"))
         self.assertEqual(row["remaining"], row["entitled"])
+
+    def test_other_parent_field_is_open_for_maternity_and_parental_only(self):
+        self.client.force_login(self.hr)
+        page = self.client.get(reverse("hr:leave_create"))
+        html = page.content.decode()
+        self.assertIn('data-kind="maternity"', html)
+        self.assertIn('data-kind="parental"', html)
+        self.assertIn('data-kind="annual"', html)
+        marker = 'id="id_other_parent_employed"'
+        tag = html[html.rfind("<select", 0, html.index(marker)):html.index(">", html.index(marker))]
+        self.assertIn("disabled", tag)
+        parental = self.company.leave_types.get(kind=LeaveKind.PARENTAL)
+        maternity = self.company.leave_types.get(kind=LeaveKind.MATERNITY)
+        for leave_type in (parental, maternity):
+            opened = LeaveApplicationForm(data={"leave_type": leave_type.pk}, user=self.hr)
+            self.assertNotIn("disabled", str(opened["other_parent_employed"]))
+        closed = LeaveApplicationForm(data={"leave_type": self.annual.pk}, user=self.hr)
+        self.assertIn("disabled", str(closed["other_parent_employed"]))
 
     def test_validation_for_dates_overlap_and_balance(self):
         _, employee = self.create_employee()
