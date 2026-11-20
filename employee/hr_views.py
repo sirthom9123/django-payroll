@@ -17,6 +17,7 @@ from leave.models import LeaveApplication, LeaveStatus
 from employee.forms import (
     ContractForm,
     EmployeeDocumentForm,
+    DaysPerWeekForm,
     EmployeeForm,
     EmploymentHistoryForm,
     GrossSalaryForm,
@@ -168,18 +169,29 @@ def employee_create(request):
 @hr_login_required
 def employee_detail(request, pk):
     employee = get_employee(request.user, pk)
-    gross_form = GrossSalaryForm(request.POST or None, instance=employee)
+    gross_form = GrossSalaryForm(instance=employee)
+    days_form = DaysPerWeekForm(instance=employee)
     if request.method == "POST":
         if not (can_edit_hr(request.user) or can_run_payroll(request.user)):
             return render(request, "hr/read_only.html", status=403)
-        if gross_form.is_valid():
-            gross_form.save()
-            messages.success(request, "Gross salary saved.")
-            return redirect("hr:employee_detail", pk=employee.pk)
+        action = request.POST.get("employee_action")
+        if action == "save_pay":
+            gross_form = GrossSalaryForm(request.POST, instance=employee)
+            if gross_form.is_valid():
+                gross_form.save()
+                messages.success(request, "Gross salary saved.")
+                return redirect("hr:employee_detail", pk=employee.pk)
+        elif action == "save_days_per_week" and can_edit_hr(request.user):
+            days_form = DaysPerWeekForm(request.POST, instance=employee)
+            if days_form.is_valid():
+                days_form.save()
+                messages.success(request, "Days per week saved.")
+                return redirect("hr:employee_detail", pk=employee.pk)
     leave_as_of = timezone.localdate()
     return render(request, "hr/employee_detail.html", {
         "employee": employee,
         "gross_form": gross_form,
+        "days_form": days_form,
         "current_contract": employee.contracts.filter(is_current=True).first(),
         "contracts": employee.contracts.all(),
         "qualifications": employee.qualifications.all(),

@@ -329,18 +329,29 @@ def has_enough(application):
     return available >= application.days
 
 
+def _family_leave_error(application):
+    employee = application.employee
+    if employee.days_per_week is None:
+        return (
+            "Enter days per week on the employee file before family responsibility leave can be approved. "
+            "HR can save it under Job on the employee file."
+        )
+    if employee.days_per_week < 4:
+        return "Family responsibility leave is for an employee who works at least 4 days a week."
+    if employee.date_hired and application.start_date <= add_months(employee.date_hired, 4):
+        return "Family responsibility leave is available after 4 months of employment."
+    return ""
+
+
 def leave_refusal_message(application):
     employee = application.employee
     kind = application.leave_type.kind
     if not employee.date_hired:
         return "Enter a hire date before capturing leave."
     if kind == LeaveKind.FAMILY:
-        if employee.days_per_week is None:
-            return "Enter how many days a week this employee works before capturing family responsibility leave."
-        if employee.days_per_week < 4:
-            return "Family responsibility leave is for an employee who works at least 4 days a week."
-        if employee.date_hired and application.start_date <= add_months(employee.date_hired, 4):
-            return "Family responsibility leave is available after 4 months of employment."
+        family_error = _family_leave_error(application)
+        if family_error:
+            return family_error
     return "You do not have enough leave for these dates."
 
 
@@ -400,6 +411,12 @@ def validate_application(application):
             errors["other_parent_employed"] = "Say whether the other parent is also employed."
         elif kind == LeaveKind.PARENTAL and parental_refusal(application):
             errors["end_date"] = parental_refusal(application)
+        elif kind == LeaveKind.FAMILY:
+            family_error = _family_leave_error(application)
+            if family_error:
+                errors["employee"] = family_error
+            elif not has_enough(application):
+                errors["start_date"] = leave_refusal_message(application)
         elif not has_enough(application):
             errors["start_date"] = leave_refusal_message(application)
     if errors:

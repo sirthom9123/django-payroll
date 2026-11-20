@@ -502,6 +502,47 @@ class PublicHolidayAndAgreementTests(LeaveFixture):
         self.assertEqual(qualifying_days(employee, hired, end), Decimal("16.00"))
         self.assertEqual(entitlement(employee, self.annual, end)[0], Decimal("0.94"))
 
+    def test_manager_cannot_approve_family_leave_until_hr_sets_days_per_week(self):
+        employee = Employee.objects.create(
+            first_name="Zanele",
+            last_name="Nkomo",
+            designation=self.designation,
+            company=self.company,
+            created_by=self.hr,
+            emp_code="FAMHR",
+            date_hired=date(2024, 1, 8),
+            days_per_week=None,
+        )
+        family = self.company.leave_types.get(kind=LeaveKind.FAMILY)
+        application = LeaveApplication.objects.create(
+            employee=employee,
+            leave_type=family,
+            start_date=date(2026, 6, 1),
+            end_date=date(2026, 6, 1),
+            days=Decimal("1.00"),
+            reason="Child is ill",
+            status=LeaveStatus.SUBMITTED,
+            captured_by=self.hr,
+        )
+        self.client.force_login(self.manager)
+        blocked = self.client.post(reverse("hr:leave_decide", args=[application.pk]), {"action": "approve"})
+        self.assertContains(blocked, "Enter days per week on the employee file")
+        self.client.force_login(self.hr)
+        saved = self.client.post(reverse("hr:employee_detail", args=[employee.pk]), {
+            "employee_action": "save_days_per_week",
+            "days_per_week": "5",
+        })
+        self.assertRedirects(saved, reverse("hr:employee_detail", args=[employee.pk]))
+        self.client.force_login(self.manager)
+        approved = self.client.post(
+            reverse("hr:leave_decide", args=[application.pk]),
+            {"action": "approve"},
+            follow=True,
+        )
+        self.assertContains(approved, "Leave approved.")
+        application.refresh_from_db()
+        self.assertEqual(application.status, LeaveStatus.APPROVED)
+
     def test_family_responsibility_needs_four_days_a_week(self):
         employee = Employee.objects.create(
             first_name="Sipho",
@@ -533,7 +574,7 @@ class PublicHolidayAndAgreementTests(LeaveFixture):
             end_date="2026-06-02",
             reason="Child is ill",
         ))
-        self.assertContains(missing, "Enter how many days a week this employee works before capturing family responsibility leave.")
+        self.assertContains(missing, "Enter days per week on the employee file")
 
     def test_parental_leave_follows_the_interim_sharing_rule(self):
         employee = Employee.objects.create(

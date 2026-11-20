@@ -6,6 +6,9 @@
 <section class="panel">
   {% include "hr/_leave_summary.html" %}
 </section>
+{% if application.status == "submitted" and application.leave_type.kind == "family" and not application.employee.days_per_week %}
+<p class="error">Days per week is missing on the employee file. HR must save it on the employee under Job before this leave can be approved.</p>
+{% endif %}
 {% if application.status == "submitted" %}
 <form method="post">
   {% csrf_token %}
