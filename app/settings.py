@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "employee",
     "leave",
     "performance",
+    "recruitment",
     
     
     # Third-party libraries

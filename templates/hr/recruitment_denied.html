@@ -1,0 +1,7 @@
+{% extends "hr/base.html" %}
+{% block title %}View only{% endblock %}
+{% block content %}
+<h1>View only</h1>
+<p>You can view recruitment records. Only HR can change them.</p>
+<p><a href="{% url 'hr:vacancy_list' %}">Back to vacancies</a></p>
+{% endblock %}

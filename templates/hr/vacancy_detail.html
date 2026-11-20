@@ -1,0 +1,45 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ vacancy.title }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'hr:vacancy_list' %}">Vacancies</a></p>
+<div class="row">
+  <h1>{{ vacancy.title }}</h1>
+  {% if hr_can_edit and can_add %}
+  <a class="button" href="{% url 'hr:application_create' vacancy.pk %}">Add application</a>
+  {% endif %}
+</div>
+<dl>
+  <dt>Company</dt><dd>{{ vacancy.company }}</dd>
+  <dt>Designation</dt><dd>{{ vacancy.designation.name }} ({{ vacancy.designation.department.name }})</dd>
+  <dt>Status</dt><dd>{{ vacancy.get_status_display }}</dd>
+  <dt>Openings</dt><dd>{{ vacancy.hired_count }} hired of {{ vacancy.openings }}</dd>
+  <dt>Closing date</dt><dd>{% if vacancy.closing_date %}{{ vacancy.closing_date|date:"j F Y" }}{% else %}—{% endif %}</dd>
+</dl>
+<p>{{ vacancy.description }}</p>
+{% if hr_can_edit and vacancy.status != "closed" %}
+<p><a href="{% url 'hr:vacancy_edit' vacancy.pk %}">Update vacancy</a></p>
+{% endif %}
+<h2>Applications</h2>
+{% if applications %}
+<table>
+  <thead>
+    <tr>
+      <th>Applicant</th>
+      <th>Status</th>
+      <th>Application date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in applications %}
+    <tr>
+      <td><a href="{% url 'hr:application_detail' item.pk %}">{{ item.get_full_name }}</a></td>
+      <td>{{ item.get_status_display }}</td>
+      <td>{{ item.applied_on|date:"j F Y" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No applications yet.</p>
+{% endif %}
+{% endblock %}

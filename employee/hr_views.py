@@ -8,9 +8,11 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from employee.access import can_edit_hr, can_run_payroll, can_use_hr, visible_employees
+from employee.access import can_edit_hr, can_run_payroll, can_use_hr, visible_companies, visible_employees
 from leave.balance import annual_cycle, balances_for
 from performance.records import file_summary
+from recruitment.models import Vacancy, VacancyStatus
+from recruitment.records import hired_from
 from leave.models import LeaveApplication, LeaveStatus
 from employee.forms import (
     ContractForm,
@@ -98,10 +100,15 @@ def home(request):
         employee__in=employees,
         status=LeaveStatus.SUBMITTED,
     ).count()
+    open_vacancies = Vacancy.objects.filter(
+        company__in=visible_companies(request.user),
+        status=VacancyStatus.OPEN,
+    ).count()
     return render(request, "hr/home.html", {
         "active_employees": active_employees,
         "payroll_runs": payroll_runs,
         "open_leave": open_leave,
+        "open_vacancies": open_vacancies,
         "month_label": date(today.year, today.month, 1).strftime("%B %Y"),
     })
 
@@ -184,6 +191,7 @@ def employee_detail(request, pk):
         "leave_balances": balances_for(employee, leave_as_of),
         "leave_applications": employee.leave_applications.select_related("leave_type"),
         **file_summary(employee),
+        "recruitment_application": hired_from(employee),
     })
 
 
