@@ -107,6 +107,11 @@ class HrAccessTests(HrFixture):
         response = self.client.get(reverse("hr:home"))
         self.assertRedirects(response, "/accounts/login/?next=/hr/")
 
+    def test_root_shows_sign_in(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sign in")
+
     def test_hr_user_lands_on_hr_home_after_sign_in(self):
         response = self.client.post(reverse("login"), {
             "username": "hr.user",

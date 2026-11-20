@@ -29,12 +29,21 @@ DEBUG = config('DEBUG', cast=bool)
 ALLOWED_HOSTS = config('HOSTS', cast=Csv())
 
 
-EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+from app.mail import mail_config
+
+_mail = mail_config(
+    DEBUG,
+    config("RESEND_API_KEY", default=""),
+    config("DEFAULT_FROM_EMAIL", default=""),
+)
+EMAIL_BACKEND = _mail["EMAIL_BACKEND"]
+DEFAULT_FROM_EMAIL = _mail["DEFAULT_FROM_EMAIL"]
+if not DEBUG:
+    EMAIL_HOST = _mail["EMAIL_HOST"]
+    EMAIL_PORT = _mail["EMAIL_PORT"]
+    EMAIL_USE_TLS = _mail["EMAIL_USE_TLS"]
+    EMAIL_HOST_USER = _mail["EMAIL_HOST_USER"]
+    EMAIL_HOST_PASSWORD = _mail["EMAIL_HOST_PASSWORD"]
 
 # Application definition
 
