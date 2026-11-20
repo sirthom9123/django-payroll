@@ -1,0 +1,36 @@
+{% extends "hr/base.html" %}
+{% block title %}Recruitment{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>Vacancies</h1>
+  {% if hr_can_edit %}
+  <a class="button" href="{% url 'hr:vacancy_create' %}">New vacancy</a>
+  {% endif %}
+</div>
+{% if vacancies %}
+<table>
+  <thead>
+    <tr>
+      <th>Job title</th>
+      <th>Company</th>
+      <th>Status</th>
+      <th>Closing date</th>
+      <th>Applications</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in vacancies %}
+    <tr>
+      <td><a href="{% url 'hr:vacancy_detail' item.pk %}">{{ item.title }}</a></td>
+      <td>{{ item.company }}</td>
+      <td>{{ item.get_status_display }}</td>
+      <td>{% if item.closing_date %}{{ item.closing_date|date:"j F Y" }}{% else %}—{% endif %}</td>
+      <td>{{ item.applications.all|length }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No vacancies yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ application.get_full_name }}{% endblock %}
+{% block content %}
+<p>
+  <a href="{% url 'hr:vacancy_detail' application.vacancy.pk %}">{{ application.vacancy.title }}</a>
+</p>
+<div class="row">
+  <h1>{{ application.get_full_name }}</h1>
+  {% if hr_can_edit and can_hire %}
+  <a class="button" href="{% url 'hr:application_hire' application.pk %}">Hire</a>
+  {% endif %}
+</div>
+<dl>
+  <dt>Vacancy</dt><dd>{{ application.vacancy.title }}</dd>
+  <dt>Status</dt><dd>{{ application.get_status_display }}</dd>
+  <dt>Email</dt><dd>{{ application.email }}</dd>
+  <dt>Phone</dt><dd>{{ application.phone }}</dd>
+  <dt>ID number</dt><dd>{{ application.id_number|default:"—" }}</dd>
+  <dt>Passport number</dt><dd>{{ application.passport|default:"—" }}</dd>
+  <dt>Application date</dt><dd>{{ application.applied_on|date:"j F Y" }}</dd>
+  <dt>Note</dt><dd>{{ application.note|default:"—" }}</dd>
+  {% if application.employee_id %}
+  <dt>Employee</dt>
+  <dd><a href="{% url 'hr:employee_detail' application.employee_id %}">{{ application.employee.get_full_name }}</a></dd>
+  {% endif %}
+</dl>
+{% if hr_can_edit and application.status != "hired" %}
+<p><a href="{% url 'hr:application_edit' application.pk %}">Update application</a></p>
+{% endif %}
+{% endblock %}

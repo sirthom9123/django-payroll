@@ -20,7 +20,7 @@ class StaticRootFinder(BaseFinder):
     def check(self, **kwargs):
         return []
 
-    def find(self, path, all=False):
+    def find(self, path, all=False, find_all=False):
         matches = []
         if settings.STATIC_ROOT:
             try:
@@ -29,7 +29,7 @@ class StaticRootFinder(BaseFinder):
                 absolute = ""
             if absolute and os.path.isfile(absolute):
                 matches.append(absolute)
-        if all:
+        if all or find_all:
             return matches
         # An empty list, not None. Django's finder loop treats None as a hit.
         return matches[0] if matches else []

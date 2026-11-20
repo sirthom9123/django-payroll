@@ -396,4 +396,20 @@
   <p class="empty">No development plans yet.</p>
   {% endif %}
 </section>
+
+<section class="panel">
+  <div class="section-head">
+    <h2>Recruitment</h2>
+  </div>
+  {% if recruitment_application %}
+  <dl>
+    <dt>Vacancy</dt>
+    <dd><a href="{% url 'hr:vacancy_detail' recruitment_application.vacancy.pk %}">{{ recruitment_application.vacancy.title }}</a></dd>
+    <dt>Application</dt>
+    <dd><a href="{% url 'hr:application_detail' recruitment_application.pk %}">{{ recruitment_application.get_status_display }}</a></dd>
+  </dl>
+  {% else %}
+  <p class="empty">This employee was not hired from a vacancy.</p>
+  {% endif %}
+</section>
 {% endblock %}

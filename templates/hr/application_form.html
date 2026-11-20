@@ -1,0 +1,13 @@
+{% extends "hr/base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<p>
+  <a href="{% url 'hr:vacancy_list' %}">Vacancies</a>
+  · <a href="{% url 'hr:vacancy_detail' vacancy.pk %}">{{ vacancy.title }}</a>
+</p>
+<h1>{{ heading }}</h1>
+<form method="post">
+  {% include "hr/_fields.html" %}
+  <button type="submit">{{ submit_label }}</button>
+</form>
+{% endblock %}

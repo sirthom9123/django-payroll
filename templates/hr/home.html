@@ -13,6 +13,11 @@
     <p class="count">{{ payroll_runs }}</p>
   </section>
   <section class="card">
+    <h2>Open vacancies</h2>
+    <p class="count">{{ open_vacancies }}</p>
+    <p><a href="{% url 'hr:vacancy_list' %}">Vacancies</a></p>
+  </section>
+  <section class="card">
     <h2>Open leave</h2>
     <p class="count">{{ open_leave }}</p>
     {% if hr_can_manage %}
