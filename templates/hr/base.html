@@ -10,22 +10,22 @@
 <body>
   <a class="skip" href="#content">Skip to content</a>
   <div class="shell">
-    <header class="top">
+    <header class="side">
       <a class="brand" href="{% url 'hr:home' %}">Payroll HR</a>
       <nav aria-label="HR">
         {% if hr_can_view %}
-        <a href="{% url 'hr:home' %}">Home</a>
-        <a href="{% url 'hr:employee_list' %}">Employees</a>
-        <a href="{% url 'hr:leave_list' %}">Leave</a>
-        <a href="{% url 'hr:attendance' %}">Attendance</a>
-        <a href="{% url 'hr:agreement_list' %}">Performance</a>
-        <a href="{% url 'hr:vacancy_list' %}">Recruitment</a>
+        <a href="{% url 'hr:home' %}" {% if request.path == "/hr/" %}aria-current="page"{% endif %}>Home</a>
+        <a href="{% url 'hr:employee_list' %}" {% if "/hr/employees" in request.path %}aria-current="page"{% endif %}>Employees</a>
+        <a href="{% url 'hr:leave_list' %}" {% if "/hr/leave/" in request.path and "/approvals/" not in request.path %}aria-current="page"{% endif %}>Leave</a>
+        <a href="{% url 'hr:attendance' %}" {% if "/hr/attendance" in request.path %}aria-current="page"{% endif %}>Attendance</a>
+        <a href="{% url 'hr:agreement_list' %}" {% if "/hr/performance" in request.path %}aria-current="page"{% endif %}>Performance</a>
+        <a href="{% url 'hr:vacancy_list' %}" {% if "/hr/recruitment" in request.path %}aria-current="page"{% endif %}>Recruitment</a>
         {% endif %}
         {% if hr_can_manage %}
-        <a href="{% url 'hr:leave_approvals' %}">Approvals</a>
+        <a href="{% url 'hr:leave_approvals' %}" {% if "/hr/leave/approvals" in request.path %}aria-current="page"{% endif %}>Approvals</a>
         {% endif %}
         {% if hr_can_run_payroll %}
-        <a href="{% url 'hr:payroll_list' %}">Payroll</a>
+        <a href="{% url 'hr:payroll_list' %}" {% if "/hr/payroll" in request.path %}aria-current="page"{% endif %}>Payroll</a>
         {% endif %}
         <a href="{% url 'admin:index' %}">Admin</a>
         {% if user.is_authenticated %}
@@ -36,16 +36,18 @@
         {% endif %}
       </nav>
     </header>
-    {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-      <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-    <main id="content">
-      {% block content %}{% endblock %}
-    </main>
+    <div class="workspace">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <main id="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
   </div>
 </body>
 </html>

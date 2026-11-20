@@ -132,6 +132,15 @@ class HrAccessTests(HrFixture):
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "You do not have access to HR.", status_code=403)
 
+    def test_navigation_sits_in_a_side_column(self):
+        self.client.force_login(self.hr)
+        home = self.client.get(reverse("hr:home"))
+        self.assertContains(home, 'class="side"')
+        self.assertContains(home, 'href="/hr/" aria-current="page"')
+        employees = self.client.get(reverse("hr:employee_list"))
+        self.assertContains(employees, 'href="/hr/employees/" aria-current="page"')
+        self.assertNotContains(employees, 'href="/hr/" aria-current="page"')
+
     def test_hr_stylesheet_lives_in_project_static(self):
         found = finders.find("hr/hr.css")
         expected = os.path.join(settings.STATIC_ROOT, "hr", "hr.css")
