@@ -27,7 +27,9 @@
         {% if hr_can_run_payroll %}
         <a href="{% url 'hr:payroll_list' %}" {% if "/hr/payroll" in request.path %}aria-current="page"{% endif %}>Payroll</a>
         {% endif %}
+        {% if user.is_staff %}
         <a href="{% url 'admin:index' %}">Admin</a>
+        {% endif %}
         {% if user.is_authenticated %}
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}

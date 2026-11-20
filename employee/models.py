@@ -116,6 +116,7 @@ class Employee(models.Model):
     designation = models.ForeignKey(Designation, on_delete=models.PROTECT, related_name='designation')
     date_hired = models.DateField(null=True, blank=True, help_text='Employee hired date.')
     days_per_week = models.PositiveSmallIntegerField(
+        default=5,
         null=True,
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(7)],

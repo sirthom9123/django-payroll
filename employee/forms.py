@@ -97,6 +97,7 @@ class EmployeeForm(forms.ModelForm):
             "date_of_birth": "Used for the PAYE age rebate. Leave blank to apply only the primary rebate.",
             "gross_salary": "Monthly package for full-time, part-time, and intern staff. A permanent contract always uses this figure.",
             "hourly_rate": "Used when the employment type is Contract and the current contract is not permanent.",
+            "days_per_week": "Used for family responsibility leave and annual-leave public holidays. Full-time staff usually work 5 days.",
         }
         widgets = {
             "date_of_birth": DATE_INPUT,
@@ -221,6 +222,19 @@ class EmployeeDocumentForm(forms.ModelForm):
 
 
 MONEY = forms.NumberInput(attrs={"step": "0.01", "min": "0.00"})
+
+
+class DaysPerWeekForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = ["days_per_week"]
+        labels = {"days_per_week": "Days per week"}
+        help_texts = {
+            "days_per_week": "Family responsibility leave needs at least 4. Full-time staff usually work 5.",
+        }
+        widgets = {
+            "days_per_week": forms.NumberInput(attrs={"min": "1", "max": "7", "step": "1"}),
+        }
 
 
 class GrossSalaryForm(forms.ModelForm):

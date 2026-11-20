@@ -131,6 +131,47 @@ class HrAccessTests(HrFixture):
         response = self.client.get(reverse("hr:employee_list"))
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "You do not have access to HR.", status_code=403)
+        self.assertNotContains(response, 'href="/admin/"', status_code=403)
+
+    def test_superuser_owned_company_is_visible_to_the_organisation(self):
+        admin = User.objects.create_user(
+            "site.admin",
+            password=self.password,
+            is_staff=True,
+            is_superuser=True,
+        )
+        company = Company.objects.create(
+            company_name="Admin Co",
+            owner=admin,
+            phone="0100000002",
+            address="3 Admin Road",
+            email="admin@example.com",
+        )
+        Employee.objects.create(
+            first_name="Naledi",
+            last_name="Khumalo",
+            designation=self.designation,
+            company=company,
+            created_by=admin,
+            emp_code="SUP001",
+            status=Status.ACTIVE,
+        )
+        manager_group, _ = Group.objects.get_or_create(name="Manager")
+        manager = User.objects.create_user("manager.user", password=self.password, is_staff=True)
+        manager.groups.add(manager_group)
+        for user in (self.hr, self.payroll_user, manager):
+            self.client.force_login(user)
+            listing = self.client.get(reverse("hr:employee_list"))
+            self.assertContains(listing, "Naledi")
+            self.assertContains(listing, "SUP001")
+
+    def test_staff_user_sees_the_admin_link(self):
+        self.client.force_login(self.outsider)
+        denied = self.client.get(reverse("hr:home"))
+        self.assertContains(denied, 'href="/admin/"', status_code=403)
+        self.client.force_login(self.hr)
+        home = self.client.get(reverse("hr:home"))
+        self.assertContains(home, 'href="/admin/"')
 
     def test_navigation_sits_in_a_side_column(self):
         self.client.force_login(self.hr)

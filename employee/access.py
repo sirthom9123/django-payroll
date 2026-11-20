@@ -66,7 +66,9 @@ def visible_companies(user):
     if user.is_superuser:
         return Company.objects.all()
     return Company.objects.filter(
-        Q(owner=user) | Q(owner__groups__name__in=ORGANISATION_GROUPS)
+        Q(owner=user)
+        | Q(owner__groups__name__in=ORGANISATION_GROUPS)
+        | Q(owner__is_superuser=True)
     ).distinct()
 
 

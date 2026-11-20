@@ -36,7 +36,23 @@
     <dt>Department</dt><dd>{{ employee.designation.department.name }}</dd>
     <dt>Employment type</dt><dd>{{ employee.get_employee_type_display }}</dd>
     <dt>Date hired</dt><dd>{% if employee.date_hired %}{{ employee.date_hired|date:"j F Y" }}{% else %}—{% endif %}</dd>
-    <dt>Days per week</dt><dd>{% if employee.days_per_week %}{{ employee.days_per_week }}{% else %}—{% endif %}</dd>
+    <dt>Days per week</dt>
+    <dd>
+      {% if hr_can_edit %}
+      <form method="post" action="{% url 'hr:employee_detail' employee.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="employee_action" value="save_days_per_week">
+        {{ days_form.days_per_week }}
+        <p class="help">{{ days_form.days_per_week.help_text }}</p>
+        {% for error in days_form.days_per_week.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        <button type="submit">Save days per week</button>
+      </form>
+      {% elif employee.days_per_week %}
+      {{ employee.days_per_week }}
+      {% else %}
+      —
+      {% endif %}
+    </dd>
     <dt>Date departed</dt><dd>{% if employee.date_departed %}{{ employee.date_departed|date:"j F Y" }}{% else %}—{% endif %}</dd>
     <dt>Gross salary</dt>
     <dd>
@@ -44,6 +60,7 @@
       {% if employee.pay_basis == "hourly" and employee.hourly_rate %}<p>Hourly rate R{{ employee.hourly_rate|floatformat:2 }}</p>{% endif %}
       <form method="post" action="{% url 'hr:employee_detail' employee.pk %}">
         {% csrf_token %}
+        <input type="hidden" name="employee_action" value="save_pay">
         <label for="{{ gross_form.gross_salary.id_for_label }}">Monthly gross salary (ZAR)</label>
         {{ gross_form.gross_salary }}
         <p class="help">{{ gross_form.gross_salary.help_text }}</p>

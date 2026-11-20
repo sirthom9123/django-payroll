@@ -98,8 +98,29 @@ class LeaveApplicationForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         leave_type = cleaned.get("leave_type")
+        employee = cleaned.get("employee")
         if leave_type is None or leave_type.kind not in (LeaveKind.MATERNITY, LeaveKind.PARENTAL):
             cleaned["other_parent_employed"] = None
+        if (
+            leave_type
+            and employee
+            and leave_type.kind == LeaveKind.FAMILY
+            and cleaned.get("start_date")
+            and cleaned.get("end_date")
+        ):
+            from leave.balance import _family_leave_error
+
+            application = LeaveApplication(
+                employee=employee,
+                leave_type=leave_type,
+                start_date=cleaned["start_date"],
+                end_date=cleaned["end_date"],
+            )
+            if getattr(self.instance, "pk", None):
+                application.pk = self.instance.pk
+            message = _family_leave_error(application)
+            if message:
+                raise ValidationError({"employee": message})
         return cleaned
 
 
